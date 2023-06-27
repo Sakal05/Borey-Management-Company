@@ -19,9 +19,9 @@ const navigation = () => {
       path: '/'
     },
     {
-      title: 'Account Setting',
+      title: 'List of Users',
       icon: AccountCogOutline,
-      path: '/account-settings'
+      path: '/user-info'
     },
     {
       sectionTitle: 'Service'

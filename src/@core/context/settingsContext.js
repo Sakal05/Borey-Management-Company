@@ -23,7 +23,7 @@ export const SettingsProvider = ({ children }) => {
   // Function to set the token
   const setAuthToken = newToken => {
     console.log('Token in context: ', newToken)
-    localStorage.setItem('token', newToken)
+    localStorage.setItem('ctoken', newToken)
     setToken(newToken)
   }
 
@@ -32,11 +32,11 @@ export const SettingsProvider = ({ children }) => {
   // Function to clear the token
   const clearAuthToken = () => {
     setToken(null)
-    localStorage.removeItem('token');
+    localStorage.removeItem('ctoken');
   }
 
   useEffect(() => {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('ctoken')
       setToken(token)
     }, [])
 

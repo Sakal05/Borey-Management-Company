@@ -45,7 +45,7 @@ const NewsFeed = () => {
   }
   
   useEffect(() => {
-      const t = localStorage.getItem('token');
+      const t = localStorage.getItem('ctoken');
       token = t;
       console.log('token here cont',token)
       if (!verifyLogin(t)) {
