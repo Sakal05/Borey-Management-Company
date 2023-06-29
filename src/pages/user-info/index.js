@@ -20,7 +20,7 @@ import { SettingsContext } from 'src/@core/context/settingsContext'
 import { useRouter } from 'next/router'
 
 const TableStickyHeader = () => {
-  const router = useRouter()
+  const router = useRouter();
   const {
     contextTokenValue: { token }
   } = useContext(SettingsContext)
@@ -28,7 +28,7 @@ const TableStickyHeader = () => {
   // ** States
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [data, setData] = useState();
+  const [data, setData] = useState()
   const [loading, setLoading] = useState(true)
 
   const handleChangePage = (event, newPage) => {
@@ -52,7 +52,7 @@ const TableStickyHeader = () => {
       })
       console.log(res)
       setData(res.data)
-      setLoading(false);
+      setLoading(false)
     } catch (err) {
       console.log(err)
     }
@@ -70,8 +70,8 @@ const TableStickyHeader = () => {
     const t = localStorage.getItem('ctoken')
     token = t
     console.log('token here inside curent page', token)
-    fetchUserByCompany();
-    console.log(data);
+    fetchUserByCompany()
+    console.log(data)
     if (!verifyLogin(t)) {
       toast.error('Please Login')
       router.push('pages/c/login')
@@ -86,59 +86,53 @@ const TableStickyHeader = () => {
       {loading ? (
         <p>Loading...</p> // Display a loading message or spinner while data is being fetched
       ) : (
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 440 }}>
-          <Table stickyHeader aria-label='sticky table'>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ minWidth: 170 }}>User id</TableCell>
-                <TableCell sx={{ minWidth: 170 }}>FullName</TableCell>
-                <TableCell sx={{ minWidth: 170 }}>Email</TableCell>
-                <TableCell sx={{ minWidth: 170 }}>Property Id</TableCell>
-                <TableCell sx={{ minWidth: 170 }}>Register at</TableCell>
-
-                {/* {columns.map(column => (
-                  <TableCell key={column.id} align={column.align} sx={{ minWidth: column.minWidth }}>
-                    {column.label}
-                  </TableCell>
-                ))} */}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(info => {
-                return (
-                  <TableRow hover role='checkbox' tabIndex={-1} key={1}>
-                    <TableCell key={info.id} align='left'>
-                      {info.user_id}
-                    </TableCell>
-                    <TableCell key={info.id} align='left'>
-                      {info.fullname}
-                    </TableCell>
-                    <TableCell key={info.id} align='left'>
-                      {info.email}
-                    </TableCell>
-                    <TableCell key={info.id} align='left'>
-                      {info.property_id}
-                    </TableCell>
-                    <TableCell key={info.id} align='left'>
-                      {info.created_at}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[10, 25, 100]}
-          component='div'
-          count={data.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
+        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+          <TableContainer sx={{ maxHeight: 440 }}>
+            <Table stickyHeader aria-label='sticky table'>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ minWidth: 170 }}>User id</TableCell>
+                  <TableCell sx={{ minWidth: 170 }}>FullName</TableCell>
+                  <TableCell sx={{ minWidth: 170 }}>Email</TableCell>
+                  <TableCell sx={{ minWidth: 170 }}>Property Id</TableCell>
+                  <TableCell sx={{ minWidth: 170 }}>Register at</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(info => {
+                  return (
+                    <TableRow hover role='checkbox' tabIndex={-1} key={1}>
+                      <TableCell key={info.id} align='left'>
+                        {info.user_id}
+                      </TableCell>
+                      <TableCell key={info.id} align='left'>
+                        {info.fullname}
+                      </TableCell>
+                      <TableCell key={info.id} align='left'>
+                        {info.email}
+                      </TableCell>
+                      <TableCell key={info.id} align='left'>
+                        {info.property_id}
+                      </TableCell>
+                      <TableCell key={info.id} align='left'>
+                        {info.created_at}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[10, 25, 100]}
+            component='div'
+            count={data.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
       )}
     </Grid>
   )
