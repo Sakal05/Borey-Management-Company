@@ -1,85 +1,67 @@
 // ** MUI Imports
-import Card from '@mui/material/Card'
-import Avatar from '@mui/material/Avatar'
-import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
-import CardContent from '@mui/material/CardContent'
+import { useState, useEffect } from 'react'
+
+// ** MUI Imports
 import Box from '@mui/material/Box'
-import Grid from '@mui/material/Grid'
-import TextField from '@mui/material/TextField'
-import InputLabel from '@mui/material/InputLabel'
-import { useState } from 'react'
-import Router from 'next/router'
-import MenuItem from '@mui/material/MenuItem'
-import FormControl from '@mui/material/FormControl'
+import Card from '@mui/material/Card'
+import TabList from '@mui/lab/TabList'
+import TabPanel from '@mui/lab/TabPanel'
+import TabContext from '@mui/lab/TabContext'
+import { styled } from '@mui/material/styles'
+import MuiTab from '@mui/material/Tab'
+// import Tab from '@mui/material/Tab'
 
 // ** Icons Imports
-import HelpCircleOutline from 'mdi-material-ui/HelpCircleOutline'
-import Select from '@mui/material/Select'
+import AccountOutline from 'mdi-material-ui/AccountOutline'
+import LockOpenOutline from 'mdi-material-ui/LockOpenOutline'
+import InformationOutline from 'mdi-material-ui/InformationOutline'
+
+import ElectricBillInfoForm from 'src/views/electric-bill-info-form'
+
+// ** Third Party Styles Imports
+import 'react-datepicker/dist/react-datepicker.css'
+import { Typography } from '@mui/material'
+
+const Tab = styled(MuiTab)(({ theme }) => ({
+  [theme.breakpoints.down('md')]: {
+    minWidth: 200
+  },
+  [theme.breakpoints.down('sm')]: {
+    minWidth: 200
+  }
+}))
+
 
 const ElectricBill = () => {
-  const [userId, setUserId] = useState('')
-  const [category, setCatetory] = useState('')
+  const [value, setValue] = useState('account')
 
-  const handleUserId = e => {
-    setUserId(e.target.value)
+  const handleChange = (event, newValue) => {
+    setValue(newValue)
   }
 
-  const handleCatetory = e => {
-    setCatetory(e.target.value)
-  }
-
-  const handleNext = () => {
-    Router.push({
-      pathname: '/electric-bill-info',
-      query: {
-        userId: userId,
-        category: category
-      }
-    })
-  }
-  console.log(category)
   return (
     <Card>
-      <CardContent
-        sx={{
-          display: 'flex',
-          textAlign: 'center',
-          alignItems: 'center',
-          flexDirection: 'column',
-          padding: theme => `${theme.spacing(9.75, 5, 9.25)} !important`
-        }}
-      >
-        <Avatar
-          sx={{ width: 50, height: 50, marginBottom: 2.25, color: 'common.white', backgroundColor: 'primary.main' }}
+      <TabContext value={value}>
+        <TabList
+          aria-label='account-settings tabs'
+          sx={{ borderBottom: theme => `1px solid ${theme.palette.divider}` }}
+          onChange={handleChange}
         >
-          <HelpCircleOutline sx={{ fontSize: '2rem' }} />
-        </Avatar>
-        <Typography variant='h6' sx={{ marginBottom: 2.75 }}>
-          Electric/Water Bill
-        </Typography>
-        <Box sx={{ display: 'flex' }} fullWidth>
-          <Grid item xs={12} sm={12} sx={{ margin: 5 }}>
-            <TextField label='User ID' placeholder='Enter user ID' name='userId' onChange={handleUserId} />
-          </Grid>
-          <Grid item xs={12} sm={12} sx={{ margin: 5 }}>
-            <FormControl>
-              <InputLabel id='category-label'>Category</InputLabel>
-              <Select labelId='category-label' label='Category' name='category' onChange={handleCatetory}>
-                <MenuItem value='electric'>Electric Payment</MenuItem>
-                <MenuItem value='water'>Water Payment</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-        </Box>
-        <Button
-          variant='contained'
-          sx={{ padding: theme => theme.spacing(1.75, 5.5), marginTop: 5 }}
-          onClick={handleNext}
-        >
-          Next
-        </Button>
-      </CardContent>
+          <Tab
+            value='account'
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <AccountOutline />
+                <Typography sx={{ m: 2 }}>Electric/Water Bill Form</Typography>
+              </Box>
+            }
+          />
+        </TabList>
+
+        <TabPanel value='account' sx={{ p: 0 }}>
+          <ElectricBillInfoForm />
+        </TabPanel>
+      </TabContext>
     </Card>
   )
 }
