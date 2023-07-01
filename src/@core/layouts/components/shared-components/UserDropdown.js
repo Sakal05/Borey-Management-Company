@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, Fragment, useContext } from 'react'
+import { useState, Fragment, useContext, useEffect } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -23,7 +23,6 @@ import AccountOutline from 'mdi-material-ui/AccountOutline'
 import MessageOutline from 'mdi-material-ui/MessageOutline'
 import HelpCircleOutline from 'mdi-material-ui/HelpCircleOutline'
 import { SettingsContext } from 'src/@core/context/settingsContext'
-import cookie from 'cookie';
 import axios from 'axios'
 
 // ** Styled Components
@@ -36,17 +35,45 @@ const BadgeContentSpan = styled('span')(({ theme }) => ({
 }))
 
 const UserDropdown = () => {
-  const API_URL = 'http://localhost:8000/api/'
-
   const {
     contextTokenValue: { token, clearAuthToken }
-  } = useContext(SettingsContext);
-
+  } = useContext(SettingsContext)
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
+  const [currentUser, setCurrentUser] = useState({
+    company_name: '',
+    role_id: ''
+  })
+ 
 
   // ** Hooks
   const router = useRouter()
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (token !== null) {
+        try {
+          const res = await axios({
+            method: 'GET',
+            // baseURL: API_URL,
+            url: 'http://127.0.0.1:8000/api/company/loggedcompany',
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          })
+          console.log(res)
+          setCurrentUser(res.data.company)
+        } catch (err) {
+          console.log(err)
+        }
+      }
+    }
+    if (token !== null) {
+      fetchUser()
+    }
+  }, [token])
+
+  console.log(currentUser)
 
   const handleDropdownOpen = event => {
     setAnchorEl(event.currentTarget)
@@ -60,23 +87,13 @@ const UserDropdown = () => {
   }
 
   const handleLogOut = async () => {
-    console.log('Token in log out page: ', token);
+    console.log('Token in log out page: ', token)
 
     try {
       await axios({
         method: 'POST',
         // baseURL: API_URL,
         url: 'http://localhost:8000/api/logout',
-        // data: {
-        //     user_id: "0001", // Associate the user ID
-        //     username: "sadfadf",
-        //     fullname: "sasaasdf",
-        //     email: "samn@gmail.com",
-        //     category: "asdfasd",
-        //     problem_description: "asdfsdfsdf",
-        //     image: "fasdfsa.png", // Save the image path in the database
-        //     environment_status: "pending",
-        // },
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -86,7 +103,7 @@ const UserDropdown = () => {
       })
 
       console.log('Log out successfully')
-      clearAuthToken();
+      clearAuthToken()
       router.push('/pages/u/login')
     } catch (err) {
       console.log(err)
@@ -106,6 +123,10 @@ const UserDropdown = () => {
       color: 'text.secondary'
     }
   }
+
+  // useEffect(async () => {
+  //   await fetchUser();
+  // }, [])
 
   return (
     <Fragment>
@@ -141,9 +162,9 @@ const UserDropdown = () => {
               <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
             </Badge>
             <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>John Doe</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{currentUser.company_name}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                Admin
+                {currentUser.role_id === 2 ? 'ADMIN' : "UNKNOWN"}
               </Typography>
             </Box>
           </Box>
@@ -157,36 +178,10 @@ const UserDropdown = () => {
         </MenuItem>
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
           <Box sx={styles}>
-            <EmailOutline sx={{ marginRight: 2 }} />
-            Inbox
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <MessageOutline sx={{ marginRight: 2 }} />
-            Chat
-          </Box>
-        </MenuItem>
-        <Divider />
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
             <CogOutline sx={{ marginRight: 2 }} />
             Settings
           </Box>
         </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <CurrencyUsd sx={{ marginRight: 2 }} />
-            Pricing
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <HelpCircleOutline sx={{ marginRight: 2 }} />
-            FAQ
-          </Box>
-        </MenuItem>
-        <Divider />
         <MenuItem sx={{ py: 2 }} onClick={handleLogOut}>
           <LogoutVariant sx={{ marginRight: 2, fontSize: '1.375rem', color: 'text.secondary' }} />
           Logout
