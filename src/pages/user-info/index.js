@@ -18,6 +18,7 @@ import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { SettingsContext } from 'src/@core/context/settingsContext'
 import { useRouter } from 'next/router'
+import moment from 'moment'
 
 const TableStickyHeader = () => {
   const router = useRouter();
@@ -42,10 +43,12 @@ const TableStickyHeader = () => {
 
   const fetchUserByCompany = async () => {
     console.log(token)
+    const url = 'http://127.0.0.1:8000/api/user_infos';
+    //`http://localhost:8000/api/user_infos`
     try {
       const res = await axios({
         method: 'GET',
-        url: `http://localhost:8000/api/company/0001/users`,
+        url: url,
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -106,16 +109,16 @@ const TableStickyHeader = () => {
                         {info.user_id}
                       </TableCell>
                       <TableCell key={info.id} align='left'>
-                        {info.fullname}
+                        {info.user.fullname}
                       </TableCell>
                       <TableCell key={info.id} align='left'>
-                        {info.email}
+                        {info.user.email}
                       </TableCell>
                       <TableCell key={info.id} align='left'>
                         {info.property_id}
                       </TableCell>
                       <TableCell key={info.id} align='left'>
-                        {info.created_at}
+                        {moment(info.created_at).format('YYYY-MM-DD')}
                       </TableCell>
                     </TableRow>
                   )
