@@ -104,15 +104,6 @@ const TabAccount = () => {
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
-              <InputLabel>Role</InputLabel>
-              <Select label='Role' defaultValue='houseOwner'>
-                <MenuItem value='admin'>Admin</MenuItem>
-                <MenuItem value='houseOwner'>House Owner</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
               <InputLabel>Status</InputLabel>
               <Select label='Status' defaultValue='active'>
                 <MenuItem value='active'>Active</MenuItem>
@@ -122,7 +113,7 @@ const TabAccount = () => {
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label='Company_ID' placeholder='ABC123' defaultValue='ABC123' />
+            <TextField fullWidth label='Company_ID' placeholder='ABC123' defaultValue='C1' />
           </Grid>
 
           {openAlert ? (
