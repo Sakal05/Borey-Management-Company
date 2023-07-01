@@ -1,108 +1,149 @@
 // ** React Imports
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Link from '@mui/material/Link'
-import { styled } from '@mui/material/styles'
 import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
 import { useRouter } from 'next/router'
+import { SettingsContext } from '../../../src/@core/context/settingsContext'
+import { FormatListBulleted } from 'mdi-material-ui'
+import FormControl from '@mui/material/FormControl'
+import Select from '@mui/material/Select'
+import InputLabel from '@mui/material/InputLabel'
+import axios from 'axios'
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const ElectricBillInfoForm = () => {
-  const router = useRouter()
-  const { userId, category } = router.query;
+  const {
+    contextTokenValue: { token }
+  } = useContext(SettingsContext)
+  // const router = useRouter()
+  // const { userId, category } = router.query
+  const [userInfo, setUserInfo] = useState({
+    userName: '',
+    name: '',
+    houseNum: '',
+    email: '',
+    status: ''
+  })
 
-  const category_name =
-    category === 'electric'
-    ? 'Electric Bill Payment'
-    : category === 'water'
-    ? 'Water Bill Payment'
-    : 'Unknown Category';
-  
-    const [electricInfo, setElectricInfo] = useState({});
+  const [electricInfo, setElectricInfo] = useState({})
 
-  const getUserElectricInfo = () => {
-    fetch(`/electric-bill-info?userId=${userId}&category=${category}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json'
-      }
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.message === 'fail') {
-          alert(data.message);
-        } else if (data.message === 'success') {
-          setElectricInfo(data);
+  const handleChangeInput = e => {
+    setElectricInfo(prevState => ({
+      ...prevState,
+      ...userInfo,
+      [e.target.name]: [e.target.value]
+    }))
+  }
+
+  const getUserInfo = async e => {
+    const id = e.target.value
+    try {
+      const res = await axios({
+        url: `http://localhost:8000/api/user_infos/${id}`,
+        headers: {
+          Authorization: `Bearer ${token}`
         }
       })
+      console.log(res.data)
+      setUserInfo({
+        userName: res.data.user.username,
+        name: res.data.user.fullname,
+        houseNum: res.data.house_number,
+        email: res.data.user.email,
+        status: 'Active'
+      })
+    } catch (err) {
+      toast.error('User not found')
+      console.error(err)
+    }
   }
 
-  useEffect(() => {
-    // getUserElectricInfo();
-    setElectricInfo({
-      userName: 'Sakal Samnang',
-      name: 'Sakal',
-      houseNum: '12',
-      totalBill: '12000',
-      paymentDeadline: '12/12/2022'
-    })
-  }, [])
-
-  console.log('ele info: ', electricInfo)
-
-  const data = electricInfo;
-  // ** State
-  const [openAlert, setOpenAlert] = useState(true)
-  const [imgSrc, setImgSrc] = useState('/images/avatars/1.png')
-
-  const onSubmit = e => {
+  const onSubmit = async e => {
     e.preventDefault()
-    const url = e.target.action
-    const SendData = data
-    console.log(SendData)
-    console.log(JSON.stringify(SendData))
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(SendData)
-    })
+    const url = ''
+    const SendData = electricInfo
+    try {
+      const res = await axios(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(SendData)
+      })
+      console.log(res)
+      toast.success('Form added successfully')
+      setUserInfo({
+        userName: '',
+        name: '',
+        houseNum: '',
+        email: '',
+        status: ''
+      })
+    } catch (e) {
+      console.error(e)
+      toast.error('Failed to add')
+    }
   }
+  useEffect(() => {
+    // temp add userInfo for testing purpose
+    console.log(userInfo)
+  }, [])
 
   return (
     <CardContent>
-      <form onSubmit={onSubmit} action='' method='POST'>
+      <form onSubmit={onSubmit}>
         <Grid container spacing={7}>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={12}>
             {/* <Typography variant='h5'> User Name</Typography>
             <Typography variant='body1'> {data.userName}</Typography> */}
             <TextField
               fullWidth
-              label='Username'
-              InputProps={{
-                readOnly: true
-              }}
-              name='userName'
-              value={data.userName}
+              label='User ID'
+              name='user_id'
+              onBlur={getUserInfo}
+              // value={data.userName}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
-              label='name'
+              label='Name'
               InputProps={{
-                readOnly: true
+                readOnly: false
               }}
               name='Name'
-              value={data.name}
+              value={userInfo.name}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label='Email'
+              InputProps={{
+                readOnly: false
+              }}
+              name='email'
+              value={userInfo.email}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label='Status'
+              InputProps={{
+                readOnly: false
+              }}
+              name='status'
+              value={userInfo.status}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -110,38 +151,36 @@ const ElectricBillInfoForm = () => {
               fullWidth
               label='House Number'
               InputProps={{
-                readOnly: true
+                readOnly: false
               }}
-              name='houseNumber'
-              value={data.houseNum}
+              name='houseNum'
+              value={userInfo.houseNum === null ? "Null" : userInfo.houseNum}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label='Category'
-              InputProps={{
-                readOnly: true
-              }}
-              name='Category'
-              value={category_name}
-            />
+          <Grid item xs={12} sm={12}>
+            <FormControl fullWidth>
+              <InputLabel>Bill Category</InputLabel>
+              <Select label='bill-category'>
+                <MenuItem value='electric'>Electric Bill</MenuItem>
+                <MenuItem value='water'>Water Bill</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
           <Grid item xs={12} sm={12}>
             <TextField
               fullWidth
               label='Total Bill'
               InputProps={{
-                readOnly: true
+                readOnly: false
               }}
               name='totalBill'
-              value={data.totalBill}
+              // value={data.totalBill}
             />
           </Grid>
 
           <Grid item xs={12}>
             <Button variant='contained' sx={{ marginRight: 3.5 }} type='submit'>
-              Pay Now
+              Add Now
             </Button>
           </Grid>
         </Grid>
