@@ -10,35 +10,20 @@ import TabContext from '@mui/lab/TabContext'
 import { styled } from '@mui/material/styles'
 import MuiTab from '@mui/material/Tab'
 
-// ** Icons Imports
-import AccountOutline from 'mdi-material-ui/AccountOutline'
-import LockOpenOutline from 'mdi-material-ui/LockOpenOutline'
-import InformationOutline from 'mdi-material-ui/InformationOutline'
-
-// ** Demo Tabs Imports
-import TabInfo from 'src/views/account-settings/TabInfo'
-import TabAccount from 'src/views/account-settings/TabAccount'
-import TabSecurity from 'src/views/account-settings/TabSecurity'
+import { AccountSettings } from 'mdi-material-ui'
+import { AutoFix } from 'mdi-material-ui'
 import FormField from 'src/views/form-field'
+import Typography from '@mui/material/Typography'
 
 // ** Third Party Styles Imports
 import 'react-datepicker/dist/react-datepicker.css'
 
 const Tab = styled(MuiTab)(({ theme }) => ({
   [theme.breakpoints.down('md')]: {
-    minWidth: 100
+    minWidth: 120
   },
   [theme.breakpoints.down('sm')]: {
-    minWidth: 67
-  }
-}))
-
-const TabName = styled('span')(({ theme }) => ({
-  lineHeight: 1.71,
-  fontSize: '0.875rem',
-  marginLeft: theme.spacing(2.4),
-  [theme.breakpoints.down('md')]: {
-    display: 'none'
+    minWidth: 80
   }
 }))
 
@@ -48,8 +33,6 @@ const GeneralFixing = () => {
   const handleChange = (event, newValue) => {
     setValue(newValue)
   }
-
-  const [userStatus, setUserStatus] = useState('For Me');
 
   return (
     <Card>
@@ -63,8 +46,8 @@ const GeneralFixing = () => {
             value='account'
             label={
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <AccountOutline />
-                <TabName>Form</TabName>
+                <AutoFix/>
+                <Typography sx={{ m: 2}} >General Fixing Form</Typography>
               </Box>
             }
           />
@@ -73,7 +56,6 @@ const GeneralFixing = () => {
         <TabPanel sx={{ p: 0 }} value='account'>
           <FormField />
         </TabPanel>
-       
       </TabContext>
     </Card>
   )
