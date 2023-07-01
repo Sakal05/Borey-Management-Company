@@ -1,236 +1,274 @@
 // ** React Imports
-import { useState, useContext } from 'react'
+import { useState, useContext, useEffect, useRef, Fragment } from 'react'
 
 // ** MUI Imports
+import Paper from '@mui/material/Paper'
+import Table from '@mui/material/Table'
+import TableRow from '@mui/material/TableRow'
+import TableHead from '@mui/material/TableHead'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TablePagination from '@mui/material/TablePagination'
+import Collapse from '@mui/material/Collapse'
+import { format } from 'date-fns'
+
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
-import Link from '@mui/material/Link'
-import Alert from '@mui/material/Alert'
 import Select from '@mui/material/Select'
-import { styled } from '@mui/material/styles'
 import MenuItem from '@mui/material/MenuItem'
-import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import InputLabel from '@mui/material/InputLabel'
-import AlertTitle from '@mui/material/AlertTitle'
-import IconButton from '@mui/material/IconButton'
 import CardContent from '@mui/material/CardContent'
 import FormControl from '@mui/material/FormControl'
 import Button from '@mui/material/Button'
+import SubmissionForm from '../../pages/submission-form'
 import { SettingsContext } from '../../../src/@core/context/settingsContext'
 import axios from 'axios'
-
-// ** Icons Imports
-import Close from 'mdi-material-ui/Close'
-
-const ImgStyled = styled('img')(({ theme }) => ({
-  width: 120,
-  height: 120,
-  marginRight: theme.spacing(6.25),
-  borderRadius: theme.shape.borderRadius
-}))
-
-const ButtonStyled = styled(Button)(({ theme }) => ({
-  [theme.breakpoints.down('sm')]: {
-    width: '100%',
-    textAlign: 'center'
-  }
-}))
-
-const ResetButtonStyled = styled(Button)(({ theme }) => ({
-  marginLeft: theme.spacing(4.5),
-  [theme.breakpoints.down('sm')]: {
-    width: '100%',
-    marginLeft: 0,
-    textAlign: 'center',
-    marginTop: theme.spacing(4)
-  }
-}))
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import { useRouter } from 'next/router'
+import moment from 'moment';
 
 const EnvironmentalFormField = () => {
   // ** State
-  const [openAlert, setOpenAlert] = useState(true)
-  const [imgSrc, setImgSrc] = useState('/images/avatars/1.png')
-  const [forMeStatus, setForMeStatus] = useState(true)
+  const router = useRouter()
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState([])
+  const [selectedRow, setSelectedRow] = useState(null) // Add selectedRow state
   const {
     contextTokenValue: { token }
   } = useContext(SettingsContext)
-  const [formData, setFormData] = useState({
-    fullname: '',
-    email: '',
-    category: '',
-    problem_description: '',
-    image: null,
-    general_status: 'pending'
-  })
 
-  const onChangeFile = e => {
-    const file = e.target.files[0]
-    setImgSrc(URL.createObjectURL(file))
-    setFormData(prevState => ({
-      ...prevState,
-      image: file
-    }))
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage)
   }
 
-  const handleInput = e => {
-    const fieldName = e.target.name
-    const fieldValue = e.target.value
+  const handleChangeRowsPerPage = event => {
+    setRowsPerPage(+event.target.value)
+    setPage(0)
+  }
 
-    setFormData(prevState => ({
-      ...prevState,
-      [fieldName]: fieldValue
-    }))
-
-    if (forMeStatus) {
-      console.log('isForMe')
-
-      setFormData(prevState => ({
-        ...prevState,
-        fullname: 'Sakal Samnang',
-        email: 'sakal05@gmail.com'
-      }))
+  const handleViewDetail = async row => {
+    console.log('row', row)
+    setSelectedRow(row)
+    // const { row } = props
+    console.log(row.path)
+    const image_src = await fetchImagePath(row.path)
+    console.log('img src:', image_src)
+    if (image_src) {
+      setSelectedRow(prevData => ({
+        ...prevData,
+        image: image_src
+      })) // Set the selected row in state
     }
   }
 
-  const handleUserStatus = e => {
-    setForMeStatus(e.target.value === 'for_me' ? true : false)
-    console.log('forMeStatus', e.target.value)
-    console.log('forMeStatus', forMeStatus)
+  const fetchEnvironmentalForm = async () => {
+    try {
+      const res = await axios({
+        url: 'http://localhost:8000/api/form_environments',
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      console.log(res.data)
+      setLoading(false)
+      setData(res.data)
+    } catch (e) {
+      console.log(e)
+      toast.error('Data is empty')
+    }
   }
 
-  const submitForm = async e => {
-    // We don't want the page to refresh
-    e.preventDefault()
+  const verifyLogin = token => {
+    if (token === null) {
+      return false
+    } else {
+      return true
+    }
+  }
 
-    console.log(formData)
-
-    // ===== POST the data to the URL of the form
-    const res = await axios({
-      url: 'http://localhost:8000/api/form_generals',
-      method: 'POST',
-      data: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${token}`
+  const fetchImagePath = async cid => {
+    try {
+      const response = await fetch(`https://gateway.ipfs.io/ipfs/${cid}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch image from IPFS')
       }
-    })
+      const blob = await response.blob()
+      const imageURL = URL.createObjectURL(blob)
+
+      return imageURL
+    } catch (error) {
+      toast.error('Image not found')
+      console.error(error)
+    }
+  }
+
+  const onUpdateStatus = async (e, info) => {
+    const newStatus = e.target.value
+    const form = new FormData()
+
+    form.append('problem_description', info.problem_description)
+    form.append('image', info.path)
+    form.append('general_status', newStatus)
+    form.append('category', info.category)
+    form.append('user_id', info.user_id)
+    form.append('username', info.username)
+    form.append('email', info.email)
+    form.append('fullname', info.fullname)
+    form.append('id', info.id)
+
+    for (const [key, value] of form.entries()) {
+      console.log(`${key}: ${value}`)
+    }
 
     try {
-      console.log(res)
-
-      setFormData({
-        fullname: '',
-        email: '',
-        general_status: 'pending',
-        category: '',
-        problem_description: '',
-        image: ''
+      const res = await axios({
+        url: 'http://localhost:8000/api/form_generals',
+        method: 'POST',
+        data: form,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       })
-    } catch (err) {
-      alert('Error', err.message)
+      console.log(res)
+      toast.success('Update Successfully')
+    } catch (e) {
+      console.log(e)
+      toast.error("Can't Update")
     }
+
+    console.log('Updated data', form)
   }
+  // useEffect(() => {
+  //   console.log("Updated data in useEffect", selectedRow);
+  //   updateStatus()
+  // }, [selectedRow]);
+
+  const handleViewImage = () => {
+    // router.push(`https://gateway.ipfs.io/ipfs/${selectedRow.path}`)
+    const url = `https://gateway.ipfs.io/ipfs/${selectedRow.path}`
+    window.open(url, '_blank')
+  }
+
+  useEffect(() => {
+    const t = localStorage.getItem('ctoken')
+    token = t
+    console.log('token here inside curent page', token)
+    if (!verifyLogin(t)) {
+      toast.error('Please Login')
+      router.push('pages/c/login')
+    }
+    fetchEnvironmentalForm()
+  }, [])
 
   return (
     <CardContent>
-      <form onSubmit={submitForm} method='POST' action=''>
-        <Grid container spacing={7}>
-          <Grid item xs={12} sm={12}>
-            <FormControl fullWidth>
-              <InputLabel>For</InputLabel>
-              <Select label='for' defaultValue='for_me' onChange={handleUserStatus}>
-                <MenuItem value='for_me'>For me</MenuItem>
-                <MenuItem value='for_other'>For other</MenuItem>
-              </Select>
-            </FormControl>
+      <form>
+        <Grid container spacing={6}>
+          <Grid item xs={12}>
+            <Typography variant='h5'>Environment Info</Typography>
           </Grid>
-          {!forMeStatus ? (
-            <>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  onChange={handleInput}
-                  fullWidth
-                  label='Username'
-                  name='userName'
-                  placeholder='johnDoe'
-                  defaultValue='johnDoe'
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  onChange={handleInput}
-                  fullWidth
-                  label='Name'
-                  name='fullName'
-                  placeholder='John Doe'
-                  defaultValue='John Doe'
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  type='email'
-                  label='Email'
-                  name='email'
-                  placeholder='johnySinh@example.com'
-                  onChange={handleInput}
-                />
-              </Grid>
-            </>
+          {loading ? (
+            <p>Loading...</p>
           ) : (
-            <></>
+            <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+              <TableContainer sx={{ maxHeight: 500 }}>
+                <Table stickyHeader aria-label='sticky table' sx={{ margin: 5 }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ minWidth: 80 }}>User Id</TableCell>
+                      <TableCell sx={{ minWidth: 150 }}>FullName</TableCell>
+                      <TableCell sx={{ minWidth: 100 }}>Category</TableCell>
+                      <TableCell sx={{ minWidth: 50 }}>Problem</TableCell>
+                      <TableCell sx={{ minWidth: 50 }}>Created at</TableCell>
+                      <TableCell sx={{ minWidth: 50 }}>Status</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(info => {
+                      return (
+                        <Fragment key={info.id}>
+                          <TableRow hover role='checkbox' tabIndex={-1} onClick={() => handleViewDetail(info)}>
+                            <TableCell align='left'>{info.user_id}</TableCell>
+                            <TableCell align='left'>{info.fullname}</TableCell>
+                            <TableCell align='left'>{info.category}</TableCell>
+                            <TableCell align='left'>
+                              <Button size='small' variant='outlined' sx={{ marginBottom: 7 }}>
+                                View Detail
+                              </Button>
+                            </TableCell>
+                            {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
+                            <TableCell align='left'> {moment(info.created_at).format('YYYY-MM-DD')}</TableCell>
+
+                            <TableCell align='left'>
+                              <FormControl sx={{ m: 1, minWidth: 120 }}>
+                                <Select
+                                  name='status'
+                                  value={info.environment_status}
+                                  displayEmpty={true}
+                                  inputProps={{ 'aria-label': 'Without label' }}
+                                  onChange={e => onUpdateStatus(e, info)}
+                                >
+                                  <MenuItem value='pending'>Pending</MenuItem>
+                                  <MenuItem value='in_progress'>In Progress</MenuItem>
+                                  <MenuItem value='done'>Done</MenuItem>
+                                </Select>
+                              </FormControl>
+                            </TableCell>
+                          </TableRow>
+                        </Fragment>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <TablePagination
+                rowsPerPageOptions={[10, 25, 100]}
+                component='div'
+                count={data.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
+              {selectedRow && (
+                <Table stickyHeader aria-label='sticky table' sx={{ margin: 5 }}>
+                  <Box sx={{ m: 2 }}>
+                    <Typography variant='h6' gutterBottom component='div'>
+                      Form Detail
+                    </Typography>
+                    <Table size='small' aria-label='purchases'>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Problem Description</TableCell>
+                          <TableCell>Image</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        <TableCell sx={{ minWidth: 100, verticalAlign: 'top' }}>
+                          <Typography variant='body1' sx={{ textAlign: 'left' }}>
+                            {selectedRow.problem_description}
+                          </Typography>
+                        </TableCell>
+                        <TableCell sx={{ minWidth: 200 }}>
+                          <Box
+                            sx={{ display: 'flex', justifyContent: 'left', alignItems: 'center' }}
+                            onClick={handleViewImage}
+                          >
+                            <img src={selectedRow.image} alt='Image' style={{ maxWidth: '50%', maxHeight: '50%' }} />
+                          </Box>
+                        </TableCell>
+                      </TableBody>
+                    </Table>
+                  </Box>
+                </Table>
+              )}
+            </Paper>
           )}
-
-          <Grid item xs={12} sm={12}>
-            <FormControl fullWidth>
-              <InputLabel>Category</InputLabel>
-              <Select label='category' name='category' onChange={handleInput}>
-                <MenuItem value='Energy Efficiency'>Energy Efficiency</MenuItem>
-                <MenuItem value='Waste Management'>Waste Management</MenuItem>
-                <MenuItem value='house_hold'>House Hold Repair</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} sm={12}>
-            <TextField
-              fullWidth
-              label='Problem'
-              name='problem_description'
-              placeholder='Descripte your problem here'
-              onChange={handleInput}
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Box>
-                <ButtonStyled component='label' variant='contained' htmlFor='account-settings-upload-image'>
-                  Upload Photo Here
-                  <input
-                    hidden
-                    type='file'
-                    onChange={onChangeFile}
-                    accept='image/png, image/jpeg'
-                    id='account-settings-upload-image'
-                  />
-                </ButtonStyled>
-                <ResetButtonStyled color='error' variant='outlined' onClick={() => setImgSrc('/images/avatars/1.png')}>
-                  Change
-                </ResetButtonStyled>
-                <Typography variant='body2' sx={{ marginTop: 5 }}>
-                  Allowed PNG or JPEG. Max size of 800K.
-                </Typography>
-              </Box>
-            </Box>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Button variant='contained' sx={{ marginRight: 3.5 }} type='submit'>
-              Submit
-            </Button>
-          </Grid>
         </Grid>
       </form>
     </CardContent>

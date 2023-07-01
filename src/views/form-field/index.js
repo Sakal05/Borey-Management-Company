@@ -11,8 +11,7 @@ import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import TablePagination from '@mui/material/TablePagination'
 import Collapse from '@mui/material/Collapse'
-import { format } from 'date-fns'
-
+import moment from 'moment'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Link from '@mui/material/Link'
@@ -74,15 +73,15 @@ const FormField = () => {
   const fetchGeneralForm = async () => {
     try {
       const res = await axios({
-        url: 'http://localhost:8000/api/all_form_generals',
+        url: 'http://localhost:8000/api/form_generals',
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`
         }
       })
-      console.log(res.data.general_forms)
+      console.log(res.data)
       setLoading(false)
-      setData(res.data.general_forms)
+      setData(res.data)
     } catch (e) {
       console.log(e)
       toast.error(e.message)
@@ -149,10 +148,6 @@ const FormField = () => {
 
     console.log('Updated data', form)
   }
-  // useEffect(() => {
-  //   console.log("Updated data in useEffect", selectedRow);
-  //   updateStatus()
-  // }, [selectedRow]);
 
   const handleViewImage = () => {
     // router.push(`https://gateway.ipfs.io/ipfs/${selectedRow.path}`)
@@ -195,7 +190,8 @@ const FormField = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(info => {
+                    {data && data.length > 0 && data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((info) => {
+                      console.log(info)
                       return (
                         <Fragment key={info.id}>
                           <TableRow hover role='checkbox' tabIndex={-1} onClick={() => handleViewDetail(info)}>
@@ -207,7 +203,9 @@ const FormField = () => {
                                 View Detail
                               </Button>
                             </TableCell>
-                            <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell>
+                            {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
+                            <TableCell align='left'> {moment(info.created_at).format('YYYY-MM-DD')}</TableCell>
+
                             <TableCell align='left'>
                               <FormControl sx={{ m: 1, minWidth: 120 }}>
                                 <Select
