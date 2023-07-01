@@ -1,8 +1,7 @@
 // ** React Imports
 import { createContext, useState, useEffect } from 'react'
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 // ** ThemeConfig Import
 import themeConfig from 'src/configs/themeConfig'
 
@@ -20,6 +19,7 @@ export const SettingsContext = createContext({
 
 export const SettingsProvider = ({ children }) => {
   const [token, setToken] = useState(null)
+
   // Function to set the token
   const setAuthToken = newToken => {
     console.log('Token in context: ', newToken)
@@ -27,19 +27,20 @@ export const SettingsProvider = ({ children }) => {
     setToken(newToken)
   }
 
-  console.log('token inside context',token);
+
+  console.log('token inside context', token)
 
   // Function to clear the token
   const clearAuthToken = () => {
     setToken(null)
-    localStorage.removeItem('ctoken');
+    localStorage.removeItem('ctoken')
   }
 
-  useEffect(() => {
-      const token = localStorage.getItem('ctoken')
-      setToken(token)
-    }, [])
-
+  useEffect(async () => {
+    const token = localStorage.getItem('ctoken')
+    setToken(token)
+  }, [])
+ 
   const [settings, setSettings] = useState({ ...initialSettings })
 
   const saveSettings = updatedSettings => {
