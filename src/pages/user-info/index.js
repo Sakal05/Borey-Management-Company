@@ -115,7 +115,7 @@ const TableStickyHeader = () => {
                         {info.user.email}
                       </TableCell>
                       <TableCell key={info.id} align='left'>
-                        {info.property_id}
+                        {info.house_type === '1' ? 'Teas cher' : info.house_type === '2' ? 'Teas Villa' : info.house_type === '3' ? 'Teas anh kom jes' : 'Teas ah na min dg'}
                       </TableCell>
                       <TableCell key={info.id} align='left'>
                         {moment(info.created_at).format('YYYY-MM-DD')}
