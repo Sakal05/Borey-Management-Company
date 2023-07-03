@@ -11,7 +11,7 @@ import { useRouter } from 'next/router'
 import Box from '@mui/material/Box'
 import newFeedData from 'src/dummyData/newFeedData'
 import Grid from '@mui/material/Grid'
-import NewsFeedCard from '../newsFeedCard'
+import NewsFeedCard from '../../views/newsFeedCard'
 import HomeOutline from 'mdi-material-ui/HomeOutline'
 
 const AlignItemsList = () => {

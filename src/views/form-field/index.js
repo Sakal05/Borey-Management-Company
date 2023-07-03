@@ -115,24 +115,12 @@ const FormField = () => {
   const onUpdateStatus = async (e, info) => {
     const newStatus = e.target.value
     const form = new FormData()
-
-    form.append('problem_description', info.problem_description)
-    form.append('image', info.path)
+    console.log(info);
     form.append('general_status', newStatus)
-    form.append('category', info.category)
-    form.append('user_id', info.user_id)
-    form.append('username', info.username)
-    form.append('email', info.email)
-    form.append('fullname', info.fullname)
-    form.append('id', info.id)
-
-    for (const [key, value] of form.entries()) {
-      console.log(`${key}: ${value}`)
-    }
 
     try {
       const res = await axios({
-        url: 'http://localhost:8000/api/form_generals',
+        url: `http://localhost:8000/api/form_generals/${info.id}`,
         method: 'POST',
         data: form,
         headers: {
@@ -140,13 +128,13 @@ const FormField = () => {
         }
       })
       console.log(res)
-      toast.success('Update Successfully')
+      toast.success(`Update status to '${newStatus}' successfully`)
+      fetchGeneralForm()
     } catch (e) {
       console.log(e)
-      toast.error("Can't Update")
+      toast.error("Failed to Update")
     }
 
-    console.log('Updated data', form)
   }
 
   const handleViewImage = () => {

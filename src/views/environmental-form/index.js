@@ -111,23 +111,11 @@ const EnvironmentalFormField = () => {
     const newStatus = e.target.value
     const form = new FormData()
 
-    form.append('problem_description', info.problem_description)
-    form.append('image', info.path)
-    form.append('general_status', newStatus)
-    form.append('category', info.category)
-    form.append('user_id', info.user_id)
-    form.append('username', info.username)
-    form.append('email', info.email)
-    form.append('fullname', info.fullname)
-    form.append('id', info.id)
-
-    for (const [key, value] of form.entries()) {
-      console.log(`${key}: ${value}`)
-    }
+    form.append('environment_status', newStatus)
 
     try {
       const res = await axios({
-        url: 'http://localhost:8000/api/form_generals',
+        url: `http://localhost:8000/api/form_environments/${info.id}`,
         method: 'POST',
         data: form,
         headers: {
@@ -136,12 +124,12 @@ const EnvironmentalFormField = () => {
       })
       console.log(res)
       toast.success('Update Successfully')
+      fetchEnvironmentalForm();
     } catch (e) {
       console.log(e)
       toast.error("Can't Update")
     }
 
-    console.log('Updated data', form)
   }
   // useEffect(() => {
   //   console.log("Updated data in useEffect", selectedRow);
