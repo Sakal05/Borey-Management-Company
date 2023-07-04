@@ -16,20 +16,27 @@ import TabContext from '@mui/lab/TabContext'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import NewsFeedCard from '../views/newsFeedCard'
-import newFeedData from 'src/dummyData/newFeedData'
+// import newFeedData from 'src/dummyData/newFeedData'
 import { SettingsContext } from 'src/@core/context/settingsContext'
 import { useRouter } from 'next/router'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Box from '@mui/material/Box'
+import axios from 'axios'
+import CircularProgress from '@mui/material/CircularProgress'
+import DeleteIcon from '@mui/icons-material/Delete'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
 
 const NewsFeed = () => {
   const {
     contextTokenValue: { token }
   } = useContext(SettingsContext)
 
+  const [loadingData, setLoadingData] = useState(true)
+  const [newFeedData, setNewFeedData] = useState([])
   const router = useRouter()
-
+  const [currentUser, setCurrentUser] = useState({})
   // ** State
   const [value, setValue] = useState('1')
 
@@ -49,6 +56,24 @@ const NewsFeed = () => {
     }
   }
 
+  const fetchNewsFeed = async () => {
+    try {
+      const res = await axios({
+        url: `http://localhost:8000/api/posts`,
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      console.log('All cards', res.data)
+      setNewFeedData(res.data)
+      setLoadingData(false)
+    } catch (error) {
+      console.error(error)
+      toast.error("Can't fetch post")
+    }
+  }
+
   useEffect(() => {
     const t = localStorage.getItem('ctoken')
     token = t
@@ -57,10 +82,56 @@ const NewsFeed = () => {
       toast.error('Please Login')
       router.push('pages/c/login')
     }
+    fetchNewsFeed()
   }, [])
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (token !== null) {
+        try {
+          const res = await axios({
+            method: 'GET',
+            // baseURL: API_URL,
+            url: 'http://127.0.0.1:8000/api/company/loggedcompany',
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          })
+          console.log('Company Info: ', res)
+          setCurrentUser(res.data.company)
+        } catch (err) {
+          console.log(err)
+        }
+      }
+    }
+    if (token !== null) {
+      fetchUser()
+    }
+  }, [token])
 
   return (
     <ApexChartWrapper sx={{ alignContent: 'center', alignItems: 'center' }}>
+      {loadingData && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            zIndex: 9999
+          }}
+        >
+          <CircularProgress />
+          <Typography variant='body1' style={{ marginLeft: '1rem' }}>
+            Please wait, uploading image...
+          </Typography>
+        </div>
+      )}
       <Grid
         container
         spacing={6}
@@ -113,27 +184,36 @@ const NewsFeed = () => {
             <TabContext value={value}>
               <Card sx={{ boxShadow: '0' }}>
                 <TabList centered aria-label='card navigation example' onChange={handleChange}>
-                  <Tab value='1' label='For You' sx={{ fontWeight: '900' }} />
-                  <Tab value='2' label='Promotion' sx={{ fontWeight: '900' }} />
+                  <Tab value='1' label='All' sx={{ fontWeight: '900' }} />
+                  <Tab value='2' label='Your Post' sx={{ fontWeight: '900' }} />
                 </TabList>
                 <CardContent sx={{ textAlign: 'center', padding: 0 }}>
                   <TabPanel value='1' sx={{ p: 0 }}>
-                    {newFeedData
-                      .filter(data => data.promotion === 'false')
-                      .map(data => (
-                        <Grid spacing={5} m={5} key={data.newFeedId}>
-                          <NewsFeedCard data={data}></NewsFeedCard>
-                        </Grid>
-                      ))}
+                    {newFeedData &&
+                      newFeedData
+                        // .filter(data => data.promotion === 'false')
+                        .map(data => (
+                          <Grid spacing={5} m={5} key={data.newFeedId}>
+                            <NewsFeedCard data={data} user_id={currentUser.company_id}></NewsFeedCard>
+                          </Grid>
+                        ))}
                   </TabPanel>
                   <TabPanel value='2' sx={{ p: 0 }}>
-                    {newFeedData
-                      .filter(data => data.promotion === 'true')
-                      .map(data => (
-                        <Grid spacing={5} m={5} key={data.newFeedId}>
-                          <NewsFeedCard data={data}></NewsFeedCard>
-                        </Grid>
-                      ))}
+                    {newFeedData.company_id !== null ? (
+                      newFeedData.filter(data => data.company_id === currentUser.company_id).length > 0 ? (
+                        newFeedData
+                          .filter(data => data.company_id === currentUser.company_id)
+                          .map(data => (
+                            <Grid spacing={5} m={5} key={data.id}>
+                              <NewsFeedCard data={data} user_id={currentUser.company_id}></NewsFeedCard>
+                            </Grid>
+                          ))
+                      ) : (
+                        <Typography marginTop={10} variant='h3'>No posts yet</Typography>
+                      )
+                    ) : (
+                      <Typography>No posts yet</Typography>
+                    )}
                   </TabPanel>
                 </CardContent>
               </Card>

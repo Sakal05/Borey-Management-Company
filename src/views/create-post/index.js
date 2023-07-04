@@ -131,7 +131,7 @@ const createPost = () => {
     const updatedImages = [...uploadedImages]
     updatedImages.splice(index, 1)
     setUploadedImages(updatedImages)
-    
+
     const updateImageCIDs = [...imageCIDs]
     updateImageCIDs.splice(index, 1)
     setImageCIDs(updateImageCIDs)
@@ -179,7 +179,8 @@ const createPost = () => {
         }
       })
       console.log(res)
-      toast.success('Form added successfully')
+      toast.success('Post uploaded successfully')
+      router.push('/');
     } catch (err) {}
   }
 
