@@ -13,7 +13,11 @@ import 'react-toastify/dist/ReactToastify.css'
 import { useRouter } from 'next/router'
 import { useState, useContext, useRef, useEffect } from 'react'
 import CircularProgress from '@mui/material/CircularProgress'
-
+import MenuItem from '@mui/material/MenuItem'
+import FormControl from '@mui/material/FormControl'
+import Select from '@mui/material/Select'
+import InputLabel from '@mui/material/InputLabel'
+import IconButton from '@mui/material/IconButton'
 // ** Image Module Import MUI
 import ImageList from '@mui/material/ImageList'
 import ImageListItem from '@mui/material/ImageListItem'
@@ -29,11 +33,13 @@ const ButtonStyled = styled(Button)(({ theme }) => ({
 const createPost = () => {
   const JWT = process.env.JWT
   const [uploadingImage, setUploadingImage] = useState('')
-  const [collapse, setCollapse] = useState(false)
-  const [uploadedImages, setUploadedImages] = useState([])
-
-  const [images, setImages] = useState([])
+  // const [collapse, setCollapse] = useState(false)
+  const [uploadedImages, setUploadedImages] = useState([]);
+  const [imageCIDs, setImageCIDs] = useState([])
+  const [contentType, setContentType] = useState('')
+  // const [images, setImages] = useState([])
   const [description, setDescription] = useState('')
+  const [heading, setHeading] = useState('')
   const router = useRouter()
 
   const {
@@ -44,18 +50,20 @@ const createPost = () => {
     setDescription(event.target.value)
   }
 
-  console.log(uploadedImages)
-
-  const handleSubmit = event => {
-    event.preventDefault()
-    // Add your logic to handle form submission
-    // For example, you can send the image and description to an API endpoint
-    console.log('Description:', description)
+  const handleHeadingChange = event => {
+    setHeading(event.target.value)
   }
+
+  const handleTypeChange = event => {
+    setContentType(event.target.value)
+  }
+
+  console.log(uploadedImages)
 
   const pinFilesToIPFS = async files => {
     // console.log(src)
     const uploadedImageURLs = []
+    const uploadedImageCIDs = []
     try {
       for (const file of files) {
         const form = new FormData()
@@ -81,13 +89,27 @@ const createPost = () => {
             Authorization: `Bearer ${JWT}`
           }
         })
+        // console.log(res.data)
+        // const image_cid = res.data.IpfsHash
+        // const imageURL = `https://gateway.ipfs.io/ipfs/${image_cid}`
+        // console.log(image_cid)
+        // uploadedImageURLs.push(imageURL) //push to image array after upload
+        // setUploadedImages(uploadedImageURLs)
+        // //display success message
+        // toast.success('Upload image successfully')
+        // setUploadingImage('false')
         console.log(res.data)
+        //set image cid to get it store in backend
         const image_cid = res.data.IpfsHash
-        const imageURL = `https://gateway.ipfs.io/ipfs/${image_cid}`
         console.log(image_cid)
-        uploadedImageURLs.push(imageURL) //push to image array after upload
+        uploadedImageCIDs.push(image_cid)
+
+        const imageURL = `https://gateway.ipfs.io/ipfs/${image_cid}`
+        uploadedImageURLs.push(imageURL)
         setUploadedImages(uploadedImageURLs)
+        
         //display success message
+        setImageCIDs(prevUploadedImagesCID => [...prevUploadedImagesCID ,...uploadedImageCIDs])
         toast.success('Upload image successfully')
         setUploadingImage('false')
       }
@@ -98,27 +120,6 @@ const createPost = () => {
     }
   }
 
-  const fetchUploadedImages = async () => {
-    try {
-      const fetchedImageURLs = []
-      for (const imageURL of uploadedImages) {
-        const response = await fetch(imageURL)
-        if (response.ok) {
-          const blob = await response.blob()
-          const imageURL = URL.createObjectURL(blob)
-          fetchedImageURLs.push(imageURL)
-        } else {
-          console.error(`Failed to fetch image from IPFS: ${imageURL}`)
-        }
-      }
-
-      setUploadedImages(fetchedImageURLs)
-    } catch (error) {
-      console.error(error)
-      toast.error('Failed to fetch images')
-    }
-  }
-
   const onChangeFile = async e => {
     const files = Array.from(e.target.files)
     console.log(files)
@@ -126,25 +127,74 @@ const createPost = () => {
     await pinFilesToIPFS(files)
   }
 
-  const handleChangeFile = async e => {
-    const file = e.target.files[0]
-    console.log(file)
+  const handleRemoveImage = async index => {
+    const updatedImages = [...uploadedImages]
+    updatedImages.splice(index, 1)
+    setUploadedImages(updatedImages)
+    
+    const updateImageCIDs = [...imageCIDs]
+    updateImageCIDs.splice(index, 1)
+    setImageCIDs(updateImageCIDs)
+
     try {
       const res = await axios({
         method: 'delete',
-        url: `https://api.pinata.cloud/pinning/unpin/${formData.image}`,
+        url: `https://api.pinata.cloud/pinning/unpin/${updateImageCIDs[index]}`,
         headers: {
           Authorization: `Bearer ${process.env.JWT}`
         }
       })
       console.log(res)
-      await pinFilesToIPFS(file)
-      toast.success('Image change successfully')
+      toast.success('Image removed successfully')
     } catch (e) {
-      toast.error('Please update your image before updating')
+      toast.error('Failed to remove image')
       console.error(e)
     }
   }
+
+  const onCreatePost = async e => {
+    e.preventDefault()
+
+    const imageCidsString = imageCIDs.join(',')
+    /*
+            'content_type' => 'required',
+            'heading' => 'required',
+            'description' => 'required',
+            'image' => 'required',
+    */
+
+    const form = new FormData()
+    form.append('image', imageCidsString)
+    form.append('heading', heading)
+    form.append('description', description)
+    form.append('content_type', contentType)
+
+    try {
+      const res = await axios({
+        url: 'http://localhost:8000/api/posts',
+        method: 'POST',
+        data: form,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      console.log(res)
+      toast.success('Form added successfully')
+    } catch (err) {}
+  }
+
+  useEffect(() => {
+    const handleBeforeUnload = event => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [])
 
   return (
     <Card sx={{ border: 0, boxShadow: 0, color: 'common.white' }}>
@@ -171,7 +221,41 @@ const createPost = () => {
       )}
       <Grid container spacing={2} sx={{ m: 'auto', justifyContent: 'center', m: 10, marginBottom: 15 }}>
         <Grid item xs={12} md={6}>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={onCreatePost}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                variant='outlined'
+                label='Title'
+                value={heading}
+                onChange={handleHeadingChange}
+                sx={{ mt: 2 }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                multiline
+                rows={4}
+                variant='outlined'
+                label='Description'
+                value={description}
+                onChange={handleDescriptionChange}
+                sx={{ mt: 2 }}
+              />
+            </Grid>
+            <Grid item xs={12} marginTop={4}>
+              <FormControl fullWidth>
+                <InputLabel>Bill Category</InputLabel>
+                <Select label='Content Type' name='content-type' value={contentType} onChange={handleTypeChange}>
+                  <MenuItem value='general'>General</MenuItem>
+                  <MenuItem value='promotion'>Promotion</MenuItem>
+                  <MenuItem value='event'>Event</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', alignItems: 'center', m: 5 }}>
                 <Box>
@@ -197,23 +281,18 @@ const createPost = () => {
                     {uploadedImages.map((imageURL, index) => (
                       <ImageListItem key={index}>
                         <img src={imageURL} alt={`Uploaded Image ${index}`} />
+                        <IconButton
+                          onClick={() => handleRemoveImage(index)}
+                          style={{ position: 'absolute', top: 5, right: 5 }}
+                        >
+                          Click here
+                        </IconButton>
                       </ImageListItem>
                     ))}
                   </ImageList>
                 )}
               </Box>
             </Grid>
-
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              variant='outlined'
-              label='Description'
-              value={description}
-              onChange={handleDescriptionChange}
-              sx={{ mt: 2 }}
-            />
             <Button type='submit' variant='contained' color='primary' fullWidth sx={{ mt: 2 }}>
               Create Post
             </Button>
