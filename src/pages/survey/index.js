@@ -11,9 +11,11 @@ import { styled } from '@mui/material/styles'
 import MuiTab from '@mui/material/Tab'
 
 // ** Icons Imports
-import AccountOutline from 'mdi-material-ui/AccountOutline'
-import LockOpenOutline from 'mdi-material-ui/LockOpenOutline'
+// import AccountOutline from 'mdi-material-ui/AccountOutline'
+// import LockOpenOutline from 'mdi-material-ui/LockOpenOutline'
 import InformationOutline from 'mdi-material-ui/InformationOutline'
+// import AutoFix  from 'mdi-material-ui/AutoFix'
+import Typography from '@mui/material/Typography'
 
 // ** Demo Tabs Imports
 import TabInfo from 'src/views/account-settings/TabInfo'
@@ -63,8 +65,8 @@ const Security = () => {
             value='account'
             label={
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <AccountOutline />
-                <TabName>Survey Form</TabName>
+                <InformationOutline/>
+                <Typography sx={{ m: 2}} >Borey Survey Form</Typography>
               </Box>
             }
           />

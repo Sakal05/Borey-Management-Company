@@ -9,6 +9,7 @@ import Button from '@mui/material/Button'
 // for comment section
 import Divider from '@mui/material/Divider'
 import Collapse from '@mui/material/Collapse'
+import Grid from '@mui/material/Grid'
 
 import { useState, useEffect } from 'react'
 
@@ -40,6 +41,7 @@ const NewsFeedCard = props => {
   const [viewAllImages, setViewAllImages] = useState(false)
   const [comment, setComment] = useState('')
   const [likeClicked, setLikeClicked] = useState(false)
+  const [cardHeight, setCardHeight] = useState('auto');
   const token = localStorage.getItem('ctoken')
   console.log('Each data for newsfeed card', cardData)
   const handleClick = () => {
@@ -175,24 +177,28 @@ const NewsFeedCard = props => {
   }
 
   const getImageItems = () => {
+    const imageItems = []
+
     let images = cardData.image.split(',').slice(0, 4) // Display only 4 images initially
 
     if (viewAllImages) {
       images = cardData.image.split(',') // Display all images if 'viewAllImages' is true
+      
     }
 
-    const imageItems = []
 
-    images.forEach((item, index) => {
+    images.map((item, index) => {
       imageItems.push(
-        <ImageListItem key={index}>
+        <Grid item xs={12} sm={12} md={12} key={index}>
+          <Box sx={{height: '100%', width: '100%'}}>
           <img
             src={`https://gateway.ipfs.io/ipfs/${item}`}
             loading='lazy'
             alt={`Image ${index + 1}`}
-            style={{ height: 100, width: 'auto' }} // Adjust the height based on 'viewAllImages' state
+            style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover' }} // Set square aspect ratio for images
           />
-        </ImageListItem>
+          </Box> 
+        </Grid>
       )
     })
 
@@ -208,9 +214,17 @@ const NewsFeedCard = props => {
       setLikeClicked(true)
     }
   }, [user_id])
+
+  useEffect(() => {
+    if (viewAllImages) {
+      setCardHeight('auto');
+    } else {
+      setCardHeight('fit-content');
+    }
+  }, [viewAllImages]);
   //src='/images/avatars/4.png'
   return (
-    <Card sx={{ border: 0, boxShadow: 0, color: 'common.white', backgroundColor: 'info.main' }}>
+    <Card sx={{ border: 0, boxShadow: 0, color: 'common.white', backgroundColor: 'info.main', height: 'auto'}}>
       <CardContent sx={{ padding: theme => `${theme.spacing(3.25, 5, 4.5)} !important` }}>
         <Typography
           variant='h6'
@@ -240,16 +254,17 @@ const NewsFeedCard = props => {
             )}
           </Box>
         </Typography>
-        <Typography variant='h3' sx={{ marginBottom: 3, color: 'common.white', textAlign: 'left' }}>
+        <Typography variant='h5' sx={{ marginBottom: 3, color: 'common.white', textAlign: 'left' }}>
           {cardData.heading}
         </Typography>
         <Typography variant='body2' sx={{ marginBottom: 3, color: 'common.white', textAlign: 'left' }}>
           {cardData.description}
         </Typography>
-        <ImageList sx={{ width: '100%', height: 450 }} cols={2} rowHeight={164}>
+        <ImageList container >
+          {console.log(getImageItems().length)}
           {getImageItems()}
         </ImageList>
-        {!viewAllImages && getImageItems().length > 4 && (
+        {!viewAllImages && (
           <Button onClick={toggleViewAllImages} sx={{ color: 'common.white' }}>
             View More
           </Button>
@@ -263,14 +278,13 @@ const NewsFeedCard = props => {
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mr: 0 }} onClick={() => handleLikeClick()}>
               {likeClicked ? <Heart sx={{ marginRight: 1.25 }} /> : <HeartOutline sx={{ marginRight: 1.25 }} />}
-
               <Typography variant='body2' sx={{ color: 'common.white' }}>
                 {cardData.likes.length}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Button onClick={handleClick} sx={{ color: 'common.white' }}>
-                <Comment/>
+                <Comment />
               </Button>
               <Typography variant='body2' sx={{ color: 'common.white' }}>
                 {cardData.comments.length}

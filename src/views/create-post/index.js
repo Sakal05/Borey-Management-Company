@@ -89,15 +89,7 @@ const createPost = () => {
             Authorization: `Bearer ${JWT}`
           }
         })
-        // console.log(res.data)
-        // const image_cid = res.data.IpfsHash
-        // const imageURL = `https://gateway.ipfs.io/ipfs/${image_cid}`
-        // console.log(image_cid)
-        // uploadedImageURLs.push(imageURL) //push to image array after upload
-        // setUploadedImages(uploadedImageURLs)
-        // //display success message
-        // toast.success('Upload image successfully')
-        // setUploadingImage('false')
+
         console.log(res.data)
         //set image cid to get it store in backend
         const image_cid = res.data.IpfsHash
@@ -109,7 +101,7 @@ const createPost = () => {
         setUploadedImages(uploadedImageURLs)
         
         //display success message
-        setImageCIDs(prevUploadedImagesCID => [...prevUploadedImagesCID ,...uploadedImageCIDs])
+        setImageCIDs(uploadedImageCIDs)
         toast.success('Upload image successfully')
         setUploadingImage('false')
       }
@@ -181,7 +173,9 @@ const createPost = () => {
       console.log(res)
       toast.success('Post uploaded successfully')
       router.push('/');
-    } catch (err) {}
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   useEffect(() => {
@@ -223,7 +217,7 @@ const createPost = () => {
       <Grid container spacing={2} sx={{ m: 'auto', justifyContent: 'center', m: 10, marginBottom: 15 }}>
         <Grid item xs={12} md={6}>
           <form onSubmit={onCreatePost}>
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={12}>
               <TextField
                 fullWidth
                 multiline
@@ -235,7 +229,7 @@ const createPost = () => {
                 sx={{ mt: 2 }}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={12}>
               <TextField
                 fullWidth
                 multiline
