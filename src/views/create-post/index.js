@@ -58,8 +58,6 @@ const createPost = () => {
     setContentType(event.target.value)
   }
 
-  console.log(uploadedImages)
-
   const pinFilesToIPFS = async files => {
     // console.log(src)
     const uploadedImageURLs = []

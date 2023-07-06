@@ -10,29 +10,22 @@ import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
 import TablePagination from '@mui/material/TablePagination'
-import Collapse from '@mui/material/Collapse'
 import moment from 'moment'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
-import Link from '@mui/material/Link'
-import Alert from '@mui/material/Alert'
+
 import Select from '@mui/material/Select'
-import { styled } from '@mui/material/styles'
 import MenuItem from '@mui/material/MenuItem'
-import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import InputLabel from '@mui/material/InputLabel'
-import AlertTitle from '@mui/material/AlertTitle'
-import IconButton from '@mui/material/IconButton'
 import CardContent from '@mui/material/CardContent'
 import FormControl from '@mui/material/FormControl'
 import Button from '@mui/material/Button'
-import SubmissionForm from '../../pages/submission-form'
 import { SettingsContext } from '../../../src/@core/context/settingsContext'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { useRouter } from 'next/router'
+import ImageList from '@mui/material/ImageList'
 
 const FormField = () => {
   // ** State
@@ -60,14 +53,7 @@ const FormField = () => {
     setSelectedRow(row)
     // const { row } = props
     console.log(row.path)
-    const image_src = await fetchImagePath(row.path)
-    console.log('img src:', image_src)
-    if (image_src) {
-      setSelectedRow(prevData => ({
-        ...prevData,
-        image: image_src
-      })) // Set the selected row in state
-    }
+ 
   }
 
   const fetchGeneralForm = async () => {
@@ -96,20 +82,27 @@ const FormField = () => {
     }
   }
 
-  const fetchImagePath = async cid => {
-    try {
-      const response = await fetch(`https://gateway.ipfs.io/ipfs/${cid}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch image from IPFS')
-      }
-      const blob = await response.blob()
-      const imageURL = URL.createObjectURL(blob)
+  const getImageItems = (row) => {
+    const imageItems = []
+    console.log(row.path)
+    let images = row.path.split(','); // Display only 4 images initially
 
-      return imageURL
-    } catch (error) {
-      toast.error('Image not found')
-      console.error(error)
-    }
+    images.map((item, index) => {
+      imageItems.push(
+        <Grid item xs={12} sm={12} md={12} key={index}>
+          <Box sx={{ height: '100%', width: '100%' }} onClick={() => handleViewImage(`https://gateway.ipfs.io/ipfs/${item}`)}>
+            <img
+              src={`https://gateway.ipfs.io/ipfs/${item}`}
+              loading='lazy'
+              alt={`Image ${index + 1}`}
+              style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover' }} // Set square aspect ratio for images
+            />
+          </Box>
+        </Grid>
+      )
+    })
+
+    return imageItems
   }
 
   const onUpdateStatus = async (e, info) => {
@@ -137,9 +130,9 @@ const FormField = () => {
 
   }
 
-  const handleViewImage = () => {
+  const handleViewImage = (url) => {
     // router.push(`https://gateway.ipfs.io/ipfs/${selectedRow.path}`)
-    const url = `https://gateway.ipfs.io/ipfs/${selectedRow.path}`
+   
     window.open(url, '_blank')
   }
 
@@ -158,9 +151,6 @@ const FormField = () => {
     <CardContent>
       <form>
         <Grid container spacing={6}>
-          <Grid item xs={12}>
-            <Typography variant='h5'>General Form Info</Typography>
-          </Grid>
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -239,18 +229,16 @@ const FormField = () => {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        <TableCell sx={{ minWidth: 100, verticalAlign: 'top' }}>
+                        <TableCell sx={{ minWidth: 300, verticalAlign: 'top' }}>
                           <Typography variant='body1' sx={{ textAlign: 'left' }}>
                             {selectedRow.problem_description}
                           </Typography>
                         </TableCell>
-                        <TableCell sx={{ minWidth: 200 }}>
-                          <Box
-                            sx={{ display: 'flex', justifyContent: 'left', alignItems: 'center' }}
-                            onClick={handleViewImage}
-                          >
-                            <img src={selectedRow.image} alt='Image' style={{ maxWidth: '50%', maxHeight: '50%' }} />
-                          </Box>
+                        <TableCell sx={{ maxWidth: 200 }}>
+                        <ImageList container>
+                            {/* {console.log(getImageItems().length)} */}
+                            {getImageItems(selectedRow)}
+                          </ImageList>
                         </TableCell>
                       </TableBody>
                     </Table>

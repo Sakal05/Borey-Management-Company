@@ -37,6 +37,7 @@ const SecurityBillForm = () => {
   // const router = useRouter()
   // const { userId, category } = router.query
   const [userInfo, setUserInfo] = useState({
+    user_id: '',
     userName: '',
     name: '',
     house_number: '',
@@ -45,7 +46,6 @@ const SecurityBillForm = () => {
   })
 
   const [securityInfo, setSecurityInfo] = useState({
-    user_id: '',
     category: '',
     payment_deadline: '',
     price: '',
@@ -59,21 +59,20 @@ const SecurityBillForm = () => {
       */
   })
 
-  const handleChangeInput = e => {
-    // console.log(securityInfo)
-    setSecurityInfo(prevState => ({
-      ...prevState,
-      [e.target.name]: e.target.value
-    }))
-  }
-
   const onChangeDate = e => {
-    console.log(e);
-    setDate(e);
+    console.log(e)
+    setDate(e)
     const formattedDate = moment(e).format('YYYY-MM-DD')
     setSecurityInfo(prevState => ({
       ...prevState,
       payment_deadline: formattedDate
+    }))
+  }
+
+  const handleChangeInput = e => {
+    setSecurityInfo(prevState => ({
+      ...prevState,
+      [e.target.name]: e.target.value
     }))
   }
 
@@ -90,7 +89,7 @@ const SecurityBillForm = () => {
           Authorization: `Bearer ${token}`
         }
       })
-      console.log(res.data)
+      console.log('sec data: ',res.data)
       setUserInfo({
         userName: res.data.user.username,
         name: res.data.user.fullname,
@@ -106,10 +105,11 @@ const SecurityBillForm = () => {
 
   const onSubmit = async e => {
     e.preventDefault()
-    if(securityInfo.category === '' || securityInfo.price === '' || securityInfo.payment_deadline === '') {
-      toast.error('Please fill out all required information');
+    if (securityInfo.category === '' || securityInfo.price === '' || securityInfo.date === '') {
+      toast.error('Please fill out all required information')
       return
     }
+
     /*  === require field
             'user_id'=> 'required',
             'category' => 'required',
@@ -119,7 +119,9 @@ const SecurityBillForm = () => {
       */
 
     console.log(securityInfo)
-    const url = 'http://localhost:8000/api/securitybills'
+    let url= 'http://localhost:8000/api/securitybills'
+    
+    console.log(url)
     const SendData = securityInfo
     try {
       const res = await axios({
@@ -145,7 +147,7 @@ const SecurityBillForm = () => {
         category: '',
         price: ''
       })
-      setDate(null);
+      setDate(null)
     } catch (err) {
       // if (err.response.code === 'ERR_BAD_REQUEST') {
       //   toast.error("User doesn not have enough information, Contact User Now")
@@ -154,6 +156,10 @@ const SecurityBillForm = () => {
       toast.error('Failed to add, house number is not available. Contact User Now')
     }
   }
+  useEffect(() => {
+    // temp add userInfo for testing purpose
+    console.log(userInfo)
+  }, [])
 
   return (
     <CardContent>

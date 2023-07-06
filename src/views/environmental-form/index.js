@@ -28,9 +28,9 @@ import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { useRouter } from 'next/router'
 import moment from 'moment';
+import ImageList from '@mui/material/ImageList'
 
 const EnvironmentalFormField = () => {
-  // ** State
   const router = useRouter()
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
@@ -55,17 +55,10 @@ const EnvironmentalFormField = () => {
     setSelectedRow(row)
     // const { row } = props
     console.log(row.path)
-    const image_src = await fetchImagePath(row.path)
-    console.log('img src:', image_src)
-    if (image_src) {
-      setSelectedRow(prevData => ({
-        ...prevData,
-        image: image_src
-      })) // Set the selected row in state
-    }
+ 
   }
 
-  const fetchEnvironmentalForm = async () => {
+  const fetchGeneralForm = async () => {
     try {
       const res = await axios({
         url: 'http://localhost:8000/api/form_environments',
@@ -79,7 +72,7 @@ const EnvironmentalFormField = () => {
       setData(res.data)
     } catch (e) {
       console.log(e)
-      toast.error('Data is empty')
+      toast.error(e.message)
     }
   }
 
@@ -91,26 +84,33 @@ const EnvironmentalFormField = () => {
     }
   }
 
-  const fetchImagePath = async cid => {
-    try {
-      const response = await fetch(`https://gateway.ipfs.io/ipfs/${cid}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch image from IPFS')
-      }
-      const blob = await response.blob()
-      const imageURL = URL.createObjectURL(blob)
+  const getImageItems = (row) => {
+    const imageItems = []
+    console.log(row.path)
+    let images = row.path.split(','); // Display only 4 images initially
 
-      return imageURL
-    } catch (error) {
-      toast.error('Image not found')
-      console.error(error)
-    }
+    images.map((item, index) => {
+      imageItems.push(
+        <Grid item xs={12} sm={12} md={12} key={index}>
+          <Box sx={{ height: '100%', width: '100%' }} onClick={() => handleViewImage(`https://gateway.ipfs.io/ipfs/${item}`)}>
+            <img
+              src={`https://gateway.ipfs.io/ipfs/${item}`}
+              loading='lazy'
+              alt={`Image ${index + 1}`}
+              style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover' }} // Set square aspect ratio for images
+            />
+          </Box>
+        </Grid>
+      )
+    })
+
+    return imageItems
   }
 
   const onUpdateStatus = async (e, info) => {
     const newStatus = e.target.value
     const form = new FormData()
-
+    console.log(info);
     form.append('environment_status', newStatus)
 
     try {
@@ -123,22 +123,18 @@ const EnvironmentalFormField = () => {
         }
       })
       console.log(res)
-      toast.success('Update Successfully')
-      fetchEnvironmentalForm();
+      toast.success(`Update status to '${newStatus}' successfully`)
+      fetchGeneralForm()
     } catch (e) {
       console.log(e)
-      toast.error("Can't Update")
+      toast.error("Failed to Update")
     }
 
   }
-  // useEffect(() => {
-  //   console.log("Updated data in useEffect", selectedRow);
-  //   updateStatus()
-  // }, [selectedRow]);
 
-  const handleViewImage = () => {
+  const handleViewImage = (url) => {
     // router.push(`https://gateway.ipfs.io/ipfs/${selectedRow.path}`)
-    const url = `https://gateway.ipfs.io/ipfs/${selectedRow.path}`
+   
     window.open(url, '_blank')
   }
 
@@ -150,16 +146,13 @@ const EnvironmentalFormField = () => {
       toast.error('Please Login')
       router.push('pages/c/login')
     }
-    fetchEnvironmentalForm()
+    fetchGeneralForm()
   }, [])
 
   return (
     <CardContent>
       <form>
         <Grid container spacing={6}>
-          <Grid item xs={12}>
-            <Typography variant='h5'>Environment Info</Typography>
-          </Grid>
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -177,7 +170,8 @@ const EnvironmentalFormField = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(info => {
+                    {data && data.length > 0 && data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((info) => {
+                      console.log(info)
                       return (
                         <Fragment key={info.id}>
                           <TableRow hover role='checkbox' tabIndex={-1} onClick={() => handleViewDetail(info)}>
@@ -237,18 +231,16 @@ const EnvironmentalFormField = () => {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        <TableCell sx={{ minWidth: 100, verticalAlign: 'top' }}>
+                        <TableCell sx={{ minWidth: 300, verticalAlign: 'top' }}>
                           <Typography variant='body1' sx={{ textAlign: 'left' }}>
                             {selectedRow.problem_description}
                           </Typography>
                         </TableCell>
-                        <TableCell sx={{ minWidth: 200 }}>
-                          <Box
-                            sx={{ display: 'flex', justifyContent: 'left', alignItems: 'center' }}
-                            onClick={handleViewImage}
-                          >
-                            <img src={selectedRow.image} alt='Image' style={{ maxWidth: '50%', maxHeight: '50%' }} />
-                          </Box>
+                        <TableCell sx={{ maxWidth: 200 }}>
+                        <ImageList container>
+                            {/* {console.log(getImageItems().length)} */}
+                            {getImageItems(selectedRow)}
+                          </ImageList>
                         </TableCell>
                       </TableBody>
                     </Table>

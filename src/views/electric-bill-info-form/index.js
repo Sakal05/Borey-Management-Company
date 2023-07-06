@@ -42,7 +42,7 @@ const ElectricBillInfoForm = () => {
     user_id: '',
     userName: '',
     name: '',
-    houseNum: '',
+    house_number: '',
     email: '',
     status: ''
   })
@@ -95,7 +95,7 @@ const ElectricBillInfoForm = () => {
       setUserInfo({
         userName: res.data.user.username,
         name: res.data.user.fullname,
-        houseNum: res.data.house_number,
+        house_number: res.data.house_number,
         email: res.data.user.email,
         status: 'Active'
       })
@@ -143,7 +143,7 @@ const ElectricBillInfoForm = () => {
       setUserInfo({
         userName: '',
         name: '',
-        houseNum: '',
+        house_number: '',
         email: '',
         status: ''
       })
@@ -223,8 +223,8 @@ const ElectricBillInfoForm = () => {
               InputProps={{
                 readOnly: false
               }}
-              name='houseNum'
-              value={userInfo.houseNum === null ? 'Null' : userInfo.houseNum}
+              name='house_number'
+              value={userInfo.house_number === null ? 'Null' : userInfo.house_number}
             />
           </Grid>
           <Grid item xs={12} sm={12}>

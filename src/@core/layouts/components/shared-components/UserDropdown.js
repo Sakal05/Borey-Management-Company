@@ -164,7 +164,7 @@ const UserDropdown = () => {
             <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
               <Typography sx={{ fontWeight: 600 }}>{currentUser.company_name}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                {currentUser.role_id === 2 ? 'ADMIN' : "UNKNOWN"}
+                {currentUser.role_id === 2 ? 'COMPANY' : "UNKNOWN"}
               </Typography>
             </Box>
           </Box>
