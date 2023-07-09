@@ -3,85 +3,331 @@ import ListItem from '@mui/material/ListItem'
 import Divider from '@mui/material/Divider'
 import ListItemText from '@mui/material/ListItemText'
 import ListItemAvatar from '@mui/material/ListItemAvatar'
-import Avatar from '@mui/material/Avatar'
+import Paper from '@mui/material/Paper'
+import Table from '@mui/material/Table'
+import TableRow from '@mui/material/TableRow'
+import TableHead from '@mui/material/TableHead'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import ImageList from '@mui/material/ImageList'
+import moment from 'moment'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
+import NewsFeedCard from '../../views/newsFeedCard'
+import Button from '@mui/material/Button'
+import TablePagination from '@mui/material/TablePagination'
 import Typography from '@mui/material/Typography'
-import { useState, useEffect } from 'react'
-import * as React from 'react'
+import { useState, useEffect, useContext, Fragment } from 'react'
 import { useRouter } from 'next/router'
 import Box from '@mui/material/Box'
 import newFeedData from 'src/dummyData/newFeedData'
 import Grid from '@mui/material/Grid'
-import NewsFeedCard from '../../views/newsFeedCard'
-import HomeOutline from 'mdi-material-ui/HomeOutline'
+import axios from 'axios'
+import { SettingsContext } from 'src/@core/context/settingsContext'
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import Collapse from '@mui/material/Collapse'
 
 const AlignItemsList = () => {
-  const [searchResults, setSearchResults] = useState([])
+  const {
+    contextTokenValue: { token }
+  } = useContext(SettingsContext)
+  const [searchResults, setSearchResults] = useState()
+  const [selectedRow, setSelectedRow] = useState(null) // Add selectedRow state
+  const [loadingData, setLoadingData] = useState(true)
+  const [collapse, setCollapse] = useState(false)
+  const [currentUser, setCurrentUser] = useState({})
+
   const router = useRouter()
+  const searchKeyWord = router.query.q
   console.log(router.query)
 
-  const performSearch = () => {
-    // Perform the necessary search operations and return the search results with fetch api
-    const temp_data = [
-      { name: 'sakal', age: 30, location: 'San Francisco, CA' },
-      { name: 'sk', age: 30, location: 'Kbae Teas neak jit khang, LA' }
-    ]
+  const performSearch = async () => {
+    try {
+      const res = await axios({
+        url: `http://127.0.0.1:8000/api/search/`,
+        method: 'GET',
+        data: {
+          keyword: searchKeyWord
+        },
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      console.log('Search result', res)
+      setSearchResults(res.data)
+      setLoadingData(false)
+    } catch (error) {
+      console.error(error)
+      toast.error("Can't fetch post")
+    }
+  }
 
-    const temp_service = [
-      {
-        serviceName: 'General Fixing',
-        subService: [
-          { subServiceName: 'Electronic Repair' },
-          { subServiceName: 'Water Repair' },
-          { subServiceName: 'House Hold Repair' }
-        ]
-      },
-      {
-        serviceName: 'Environmental Fixing',
-        subService: [{ subServiceName: 'Energy Efficiency' }, { subServiceName: 'Water Management' }]
-      }
-    ]
-    
-    // ... perform search logic and return results
-    setSearchResults(temp_service)
+  const handleViewDetail = row => {
+    console.log('row', row)
+    setSelectedRow(row)
+    // const { row } = props
+    setCollapse(true)
+    console.log(row.path)
+  }
+
+  const handleCloseDetail = () => {
+    setCollapse(!collapse)
+  }
+
+  const handleClickPayNow = () => {
+    router.push('/electric-bill')
+  }
+
+  const getImageItems = row => {
+    const imageItems = []
+    console.log(row.path)
+    let images = row.path.split(',') // Display only 4 images initially
+
+    images.map((item, index) => {
+      imageItems.push(
+        <Grid item xs={12} sm={12} md={12} key={index}>
+          <Box
+            sx={{ height: '100%', width: '100%' }}
+            onClick={() => handleViewImage(`https://gateway.ipfs.io/ipfs/${item}`)}
+          >
+            <img
+              src={`https://gateway.ipfs.io/ipfs/${item}`}
+              loading='lazy'
+              alt={`Image ${index + 1}`}
+              style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover' }} // Set square aspect ratio for images
+            />
+          </Box>
+        </Grid>
+      )
+    })
+
+    return imageItems
+  }
+
+  const postResult = () => {
+    const posts = []
+    searchResults.posts.original.map(item => {
+      posts.push(
+        <Grid spacing={5} m={5} key={item.id}>
+          <NewsFeedCard data={item} user_id={currentUser.user_id}></NewsFeedCard>
+        </Grid>
+      )
+    })
+
+    return posts
+  }
+
+  const electricBillResult = () => {
+    const electricBill = []
+    searchResults.electricBills.original.map(item => {
+      electricBill.push(
+        <Fragment key={item.id}>
+          <TableRow hover role='checkbox' tabIndex={-1}>
+            <TableCell align='left'> {item.user_id}</TableCell>
+            <TableCell align='left'> {item.fullname}</TableCell>
+            <TableCell align='left'>{item.category === 'electric' ? 'Electric Bill' : 'Water Bill'}</TableCell>
+            <TableCell align='left'> {moment(item.created_at).format('YYYY-MM-DD')}</TableCell>
+            <TableCell align='left'>{item.payment_status === 'success' ? '✅' : 'Pending'}</TableCell>
+          </TableRow>
+        </Fragment>
+      )
+    })
+
+    return electricBill
+  }
+
+  const formGeneralResult = () => {
+    const formGeneral = []
+    searchResults.formGenerals.original.map(item => {
+      formGeneral.push(
+        <Fragment key={item.id}>
+          <TableRow hover role='checkbox' tabIndex={-1} onClick={() => router.push('/general-fixing')}>
+            <TableCell align='left'> {item.user_id}</TableCell>
+            <TableCell align='left'> {item.fullname}</TableCell>
+            <TableCell align='left'>General Form</TableCell>
+            <TableCell align='left'>{item.category}</TableCell>
+            <TableCell align='left' onClick={() => handleViewDetail(item)}>
+              <Button size='small' variant='outlined' sx={{ marginBottom: 7 }}>
+                View Detail
+              </Button>
+            </TableCell>
+            {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
+            <TableCell align='left'> {moment(item.created_at).format('YYYY-MM-DD')}</TableCell>
+            <TableCell align='left'>{item.general_status === 'done' ? '✅' : 'Pending'}</TableCell>
+          </TableRow>
+        </Fragment>
+      )
+    })
+
+    searchResults.formEnvironments.original.map(item => {
+      formGeneral.push(
+        <Fragment key={item.id}>
+          <TableRow hover role='checkbox' tabIndex={-1} onClick={() => router.push('/environment-fixing')}>
+            <TableCell align='left'> {item.user_id}</TableCell>
+            <TableCell align='left'> {item.fullname}</TableCell>
+            <TableCell align='left'>Environmental Form</TableCell>
+            <TableCell align='left'>{item.category}</TableCell>
+            <TableCell align='left' onClick={() => handleViewDetail(item)}>
+              <Button size='small' variant='outlined' sx={{ marginBottom: 7 }}>
+                View Detail
+              </Button>
+            </TableCell>
+            {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
+            <TableCell align='left'> {moment(item.created_at).format('YYYY-MM-DD')}</TableCell>
+            <TableCell align='left'>{item.environment_status === 'done' ? '✅' : 'Pending'}</TableCell>
+          </TableRow>
+        </Fragment>
+      )
+    })
+
+    return formGeneral
   }
 
   useEffect(() => {
     performSearch()
-  }, [])
-  console.log('Search query:', searchResults)
+  }, [searchKeyWord])
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (token !== null) {
+        try {
+          const res = await axios({
+            method: 'GET',
+            // baseURL: API_URL,
+            url: 'http://127.0.0.1:8000/api/loggeduser',
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          })
+          console.log('User Info: ', res.data.user)
+          setCurrentUser(res.data.user)
+        } catch (err) {
+          console.log(err)
+        }
+      }
+    }
+    if (token !== null) {
+      fetchUser()
+    }
+  }, [token])
 
   return (
-    <Box>
-      <Box>
-        {searchResults.length !== 0 && (
-          <Typography variant='h5' marginLeft={5}>
-            Services
+    <Grid container display='flex' flexDirection='column' spacing={5}>
+      <Grid item>
+        <Typography>Search Result</Typography>
+      </Grid>
+      <Grid item>
+        {searchResults && formGeneralResult().length > 0 && (
+          <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+            <Typography variant='h5' marginLeft={7} marginTop={3}>
+              Services Form
+            </Typography>
+            <TableContainer sx={{ maxHeight: 500 }}>
+              <Table stickyHeader aria-label='sticky table' sx={{ margin: 5 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ minWidth: 50 }}>User ID</TableCell>
+                    <TableCell sx={{ minWidth: 50 }}>Fullname</TableCell>
+                    <TableCell sx={{ minWidth: 50 }}>Form Type</TableCell>
+                    <TableCell sx={{ minWidth: 50 }}>Category</TableCell>
+                    <TableCell sx={{ minWidth: 50 }}>Problem</TableCell>
+                    <TableCell sx={{ minWidth: 50 }}>Created at</TableCell>
+                    <TableCell sx={{ minWidth: 50 }}>Status</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>{formGeneralResult()}</TableBody>
+              </Table>
+            </TableContainer>
+            <Collapse in={collapse}>
+              {selectedRow && (
+                <Table stickyHeader aria-label='sticky table'>
+                  <Box sx={{ m: 2 }}>
+                    <Box display='flex' flexDirection='row' justifyContent='space-between'>
+                      <Typography variant='h6' gutterBottom component='div' marginLeft={7}>
+                        Form Detail Results
+                      </Typography>
+                      <Button size='small' variant='outlined' onClick={handleCloseDetail}>
+                        <Typography
+                          variant='body5'
+                          gutterBottom
+                          component='div'
+                          style={{ marginLeft: 7, textAlign: 'center' }}
+                        >
+                          Close
+                        </Typography>
+                      </Button>
+                    </Box>
+                    <Table size='small' aria-label='purchases' sx={{ margin: 5 }}>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Problem Description</TableCell>
+                          <TableCell>Image</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        <TableCell sx={{ minWidth: 300, verticalAlign: 'top' }}>
+                          <Typography variant='body1' sx={{ textAlign: 'left' }}>
+                            {selectedRow.problem_description}
+                          </Typography>
+                        </TableCell>
+                        <TableCell sx={{ maxWidth: 200 }}>
+                          <ImageList container>{getImageItems(selectedRow)}</ImageList>
+                        </TableCell>
+                      </TableBody>
+                    </Table>
+                  </Box>
+                  <Divider />
+                  <Divider />
+                </Table>
+              )}
+            </Collapse>
+          </Paper>
+        )}
+        {searchResults && formGeneralResult().length === 0 && (
+          <Typography variant='h5' marginLeft={7} marginTop={3}>
+            No Data Found
           </Typography>
         )}
-        {searchResults.map(item => (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-            <Grid spacing={5} m={5} sx={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
-              <HomeOutline />
-              {item.serviceName}
-              <Grid spacing={5} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                {item.subService.map(subItem => (
-                  <Box m={2}>{subItem.subServiceName}</Box>
-                ))}
-              </Grid>
-            </Grid>
-            <Divider variant='inset' component='div'></Divider>
-          </Box>
-        ))}
-      </Box>
-      <Box>
-        {newFeedData.length !== 0 && <Typography marginLeft={5}>Based on your search result</Typography>}
-        {newFeedData.map(data => (
-          <Grid spacing={5} m={5} key={data.newFeedId}>
-            <NewsFeedCard data={data}></NewsFeedCard>
-          </Grid>
-        ))}
-      </Box>
-    </Box>
+      </Grid>
+      <Grid item>
+        {searchResults && electricBillResult().length > 0 && (
+          <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+            <Typography variant='h5' marginLeft={7} marginTop={3}>
+              Electric/Water Bill Results
+            </Typography>
+            <TableContainer sx={{ maxHeight: 500 }}>
+              <Table stickyHeader aria-label='sticky table' sx={{ margin: 5 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ minWidth: 50 }}>User ID</TableCell>
+                    <TableCell sx={{ minWidth: 50 }}>Fullname</TableCell>
+                    <TableCell sx={{ minWidth: 50 }}>Category</TableCell>
+                    <TableCell sx={{ minWidth: 50 }}>Created at</TableCell>
+                    <TableCell sx={{ minWidth: 50 }}>Paid Status</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>{electricBillResult()}</TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        )}
+        {searchResults && electricBillResult().length === 0 && (
+          <Typography variant='h5' marginLeft={7} marginTop={3}>
+            No Data Found
+          </Typography>
+        )}
+      </Grid>
+      <Grid item>
+        {searchResults && postResult().length > 0 && postResult()}
+        {searchResults && electricBillResult().length === 0 && (
+          <Typography variant='h5' marginLeft={7} marginTop={3}>
+            No Data Found
+          </Typography>
+        )}
+      </Grid>
+    </Grid>
   )
 }
 
