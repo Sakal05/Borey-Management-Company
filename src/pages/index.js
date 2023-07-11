@@ -66,8 +66,12 @@ const NewsFeed = () => {
         }
       })
       console.log('All cards', res.data)
-      setNewFeedData(res.data)
-      setLoadingData(false)
+      if (res.data !== 'No Data Available') {
+        setNewFeedData(res.data)
+        setLoadingData(false)
+      } else {
+        setLoadingData(false)
+      }
     } catch (error) {
       console.error(error)
       toast.error("Can't fetch post")
@@ -185,14 +189,26 @@ const NewsFeed = () => {
                 <Tab value='2' label='Your Post' sx={{ fontWeight: '900' }} />
               </TabList>
               <TabPanel value='1' sx={{ p: 0 }}>
-                {newFeedData &&
+                {newFeedData.length > 0 ? (
                   newFeedData
                     // .filter(data => data.promotion === 'false')
                     .map(data => (
                       <Grid spacing={5} m={5} key={data.newFeedId}>
+                        {console.log(newFeedData.length)}
                         <NewsFeedCard data={data} user_id={currentUser.company_id}></NewsFeedCard>
                       </Grid>
-                    ))}
+                    ))
+                ) : (
+                  <Grid
+                    spacing={5}
+                    m={5}
+                    sx={{ position: 'absolute', top: '70%', left: '50%', transform: 'translate(-50%, -50%)' }}
+                  >
+                    <Typography marginTop={10} variant='h3'>
+                      No posts yet
+                    </Typography>
+                  </Grid>
+                )}
               </TabPanel>
               <TabPanel value='2' sx={{ p: 0 }}>
                 <Grid item display='flex' flexDirection='row'>
@@ -209,17 +225,23 @@ const NewsFeed = () => {
                       <Grid
                         spacing={5}
                         m={5}
-                        sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+                        sx={{ position: 'absolute', top: '70%', left: '50%', transform: 'translate(-50%, -50%)' }}
                       >
                         <Typography marginTop={10} variant='h3'>
-                          No posts yet lah
+                          No posts yet
                         </Typography>
                       </Grid>
                     )
                   ) : (
-                    <Typography marginTop={10} variant='h3'>
-                      No posts yet
-                    </Typography>
+                    <Grid
+                      spacing={5}
+                      m={5}
+                      sx={{ position: 'absolute', top: '70%', left: '50%', transform: 'translate(-50%, -50%)' }}
+                    >
+                      <Typography marginTop={10} variant='h3'>
+                        No posts yet
+                      </Typography>
+                    </Grid>
                   )}
                 </Grid>
               </TabPanel>

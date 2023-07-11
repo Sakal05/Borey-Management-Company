@@ -34,6 +34,7 @@ const FormField = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState([])
+  const [selectedStatus, setSelectedStatus] = useState('')
   const [selectedRow, setSelectedRow] = useState(null) // Add selectedRow state
   const {
     contextTokenValue: { token }
@@ -46,6 +47,10 @@ const FormField = () => {
   const handleChangeRowsPerPage = event => {
     setRowsPerPage(+event.target.value)
     setPage(0)
+  }
+
+  const handleStatusFilterChange = (event) => {
+    setSelectedStatus(event.target.value)
   }
 
   const handleViewDetail = async row => {
@@ -159,6 +164,21 @@ const FormField = () => {
                 <Table stickyHeader aria-label='sticky table' sx={{ margin: 5 }}>
                   <TableHead>
                     <TableRow>
+                    <TableCell sx={{ minWidth: 50, maxWidth: 100 }}>
+                        <FormControl fullWidth>
+                          <Select
+                            value={selectedStatus}
+                            onChange={handleStatusFilterChange}
+                            displayEmpty
+                            inputProps={{ 'aria-label': 'Company' }}
+                          >
+                            <MenuItem value=''>All</MenuItem>
+                            <MenuItem value='done'>Success</MenuItem>
+                            <MenuItem value='pending'>Pending</MenuItem>
+                        
+                          </Select>
+                        </FormControl>
+                      </TableCell>
                       <TableCell sx={{ minWidth: 80 }}>User Id</TableCell>
                       <TableCell sx={{ minWidth: 150 }}>FullName</TableCell>
                       <TableCell sx={{ minWidth: 100 }}>Category</TableCell>
@@ -168,11 +188,14 @@ const FormField = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {data && data.length > 0 && data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((info) => {
+                    {data && data.length > 0 && data
+                    .filter(info => selectedStatus === '' || info.general_status === selectedStatus)
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((info) => {
                       console.log(info)
                       return (
                         <Fragment key={info.id}>
                           <TableRow hover role='checkbox' tabIndex={-1} onClick={() => handleViewDetail(info)}>
+                          <TableCell align='left'></TableCell>
                             <TableCell align='left'>{info.user_id}</TableCell>
                             <TableCell align='left'>{info.fullname}</TableCell>
                             <TableCell align='left'>{info.category}</TableCell>

@@ -27,7 +27,7 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { useRouter } from 'next/router'
-import moment from 'moment';
+import moment from 'moment'
 import ImageList from '@mui/material/ImageList'
 
 const EnvironmentalFormField = () => {
@@ -41,6 +41,11 @@ const EnvironmentalFormField = () => {
     contextTokenValue: { token }
   } = useContext(SettingsContext)
 
+  const [selectedStatus, setSelectedStatus] = useState('')
+
+  const handleStatusFilterChange = event => {
+    setSelectedStatus(event.target.value)
+  }
   const handleChangePage = (event, newPage) => {
     setPage(newPage)
   }
@@ -55,7 +60,6 @@ const EnvironmentalFormField = () => {
     setSelectedRow(row)
     // const { row } = props
     console.log(row.path)
- 
   }
 
   const fetchGeneralForm = async () => {
@@ -84,15 +88,18 @@ const EnvironmentalFormField = () => {
     }
   }
 
-  const getImageItems = (row) => {
+  const getImageItems = row => {
     const imageItems = []
     console.log(row.path)
-    let images = row.path.split(','); // Display only 4 images initially
+    let images = row.path.split(',') // Display only 4 images initially
 
     images.map((item, index) => {
       imageItems.push(
         <Grid item xs={12} sm={12} md={12} key={index}>
-          <Box sx={{ height: '100%', width: '100%' }} onClick={() => handleViewImage(`https://gateway.ipfs.io/ipfs/${item}`)}>
+          <Box
+            sx={{ height: '100%', width: '100%' }}
+            onClick={() => handleViewImage(`https://gateway.ipfs.io/ipfs/${item}`)}
+          >
             <img
               src={`https://gateway.ipfs.io/ipfs/${item}`}
               loading='lazy'
@@ -110,7 +117,7 @@ const EnvironmentalFormField = () => {
   const onUpdateStatus = async (e, info) => {
     const newStatus = e.target.value
     const form = new FormData()
-    console.log(info);
+    console.log(info)
     form.append('environment_status', newStatus)
 
     try {
@@ -127,14 +134,13 @@ const EnvironmentalFormField = () => {
       fetchGeneralForm()
     } catch (e) {
       console.log(e)
-      toast.error("Failed to Update")
+      toast.error('Failed to Update')
     }
-
   }
 
-  const handleViewImage = (url) => {
+  const handleViewImage = url => {
     // router.push(`https://gateway.ipfs.io/ipfs/${selectedRow.path}`)
-   
+
     window.open(url, '_blank')
   }
 
@@ -161,6 +167,20 @@ const EnvironmentalFormField = () => {
                 <Table stickyHeader aria-label='sticky table' sx={{ margin: 5 }}>
                   <TableHead>
                     <TableRow>
+                      <TableCell sx={{ minWidth: 50, maxWidth: 100 }}>
+                        <FormControl fullWidth>
+                          <Select
+                            value={selectedStatus}
+                            onChange={handleStatusFilterChange}
+                            displayEmpty
+                            inputProps={{ 'aria-label': 'Company' }}
+                          >
+                            <MenuItem value=''>All</MenuItem>
+                            <MenuItem value='done'>Success</MenuItem>
+                            <MenuItem value='pending'>Pending</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </TableCell>
                       <TableCell sx={{ minWidth: 80 }}>User Id</TableCell>
                       <TableCell sx={{ minWidth: 150 }}>FullName</TableCell>
                       <TableCell sx={{ minWidth: 100 }}>Category</TableCell>
@@ -170,41 +190,47 @@ const EnvironmentalFormField = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {data && data.length > 0 && data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((info) => {
-                      console.log(info)
-                      return (
-                        <Fragment key={info.id}>
-                          <TableRow hover role='checkbox' tabIndex={-1} onClick={() => handleViewDetail(info)}>
-                            <TableCell align='left'>{info.user_id}</TableCell>
-                            <TableCell align='left'>{info.fullname}</TableCell>
-                            <TableCell align='left'>{info.category}</TableCell>
-                            <TableCell align='left'>
-                              <Button size='small' variant='outlined' sx={{ marginBottom: 7 }}>
-                                View Detail
-                              </Button>
-                            </TableCell>
-                            {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
-                            <TableCell align='left'> {moment(info.created_at).format('YYYY-MM-DD')}</TableCell>
+                    {data &&
+                      data.length > 0 &&
+                      data
+                        .filter(info => selectedStatus === '' || info.environment_status === selectedStatus)
+                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                        .map(info => {
+                          console.log(info)
+                          return (
+                            <Fragment key={info.id}>
+                              <TableRow hover role='checkbox' tabIndex={-1} onClick={() => handleViewDetail(info)}>
+                                <TableCell align='left'></TableCell>
+                                <TableCell align='left'>{info.user_id}</TableCell>
+                                <TableCell align='left'>{info.fullname}</TableCell>
+                                <TableCell align='left'>{info.category}</TableCell>
+                                <TableCell align='left'>
+                                  <Button size='small' variant='outlined' sx={{ marginBottom: 7 }}>
+                                    View Detail
+                                  </Button>
+                                </TableCell>
+                                {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
+                                <TableCell align='left'> {moment(info.created_at).format('YYYY-MM-DD')}</TableCell>
 
-                            <TableCell align='left'>
-                              <FormControl sx={{ m: 1, minWidth: 120 }}>
-                                <Select
-                                  name='status'
-                                  value={info.environment_status}
-                                  displayEmpty={true}
-                                  inputProps={{ 'aria-label': 'Without label' }}
-                                  onChange={e => onUpdateStatus(e, info)}
-                                >
-                                  <MenuItem value='pending'>Pending</MenuItem>
-                                  <MenuItem value='in_progress'>In Progress</MenuItem>
-                                  <MenuItem value='done'>Done</MenuItem>
-                                </Select>
-                              </FormControl>
-                            </TableCell>
-                          </TableRow>
-                        </Fragment>
-                      )
-                    })}
+                                <TableCell align='left'>
+                                  <FormControl sx={{ m: 1, minWidth: 120 }}>
+                                    <Select
+                                      name='status'
+                                      value={info.environment_status}
+                                      displayEmpty={true}
+                                      inputProps={{ 'aria-label': 'Without label' }}
+                                      onChange={e => onUpdateStatus(e, info)}
+                                    >
+                                      <MenuItem value='pending'>Pending</MenuItem>
+                                      <MenuItem value='in_progress'>In Progress</MenuItem>
+                                      <MenuItem value='done'>Done</MenuItem>
+                                    </Select>
+                                  </FormControl>
+                                </TableCell>
+                              </TableRow>
+                            </Fragment>
+                          )
+                        })}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -237,7 +263,7 @@ const EnvironmentalFormField = () => {
                           </Typography>
                         </TableCell>
                         <TableCell sx={{ maxWidth: 200 }}>
-                        <ImageList container>
+                          <ImageList container>
                             {/* {console.log(getImageItems().length)} */}
                             {getImageItems(selectedRow)}
                           </ImageList>

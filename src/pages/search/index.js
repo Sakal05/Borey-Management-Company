@@ -60,7 +60,7 @@ const AlignItemsList = () => {
       setLoadingData(false)
     } catch (error) {
       console.error(error)
-      toast.error("Can't fetch post")
+      // toast.error("Can't fetch post")
     }
   }
 
@@ -74,10 +74,6 @@ const AlignItemsList = () => {
 
   const handleCloseDetail = () => {
     setCollapse(!collapse)
-  }
-
-  const handleClickPayNow = () => {
-    router.push('/electric-bill')
   }
 
   const getImageItems = row => {
@@ -108,80 +104,94 @@ const AlignItemsList = () => {
 
   const postResult = () => {
     const posts = []
-    searchResults.posts.original.map(item => {
-      posts.push(
-        <Grid spacing={5} m={5} key={item.id}>
-          <NewsFeedCard data={item} user_id={currentUser.user_id}></NewsFeedCard>
-        </Grid>
-      )
-    })
-
+    if (searchResults.posts.original.length === 0) {
+      posts.push(<Grid spacing={5} m={5}></Grid>)
+    } else {
+      searchResults.posts.original.map(item => {
+        posts.push(
+          <Grid spacing={5} m={5} key={item.id}>
+            <NewsFeedCard data={item} user_id={currentUser.user_id}></NewsFeedCard>
+          </Grid>
+        )
+      })
+    }
     return posts
   }
 
   const electricBillResult = () => {
     const electricBill = []
-    searchResults.electricBills.original.map(item => {
-      electricBill.push(
-        <Fragment key={item.id}>
-          <TableRow hover role='checkbox' tabIndex={-1}>
-            <TableCell align='left'> {item.user_id}</TableCell>
-            <TableCell align='left'> {item.fullname}</TableCell>
-            <TableCell align='left'>{item.category === 'electric' ? 'Electric Bill' : 'Water Bill'}</TableCell>
-            <TableCell align='left'> {moment(item.created_at).format('YYYY-MM-DD')}</TableCell>
-            <TableCell align='left'>{item.payment_status === 'success' ? '✅' : 'Pending'}</TableCell>
-          </TableRow>
-        </Fragment>
-      )
-    })
 
+    if (searchResults.electricBills.original === 'No data found.') {
+      electricBill.push(<Fragment>No data match</Fragment>)
+    } else {
+      searchResults.electricBills.original.map(item => {
+        electricBill.push(
+          <Fragment key={item.id}>
+            <TableRow hover role='checkbox' tabIndex={-1}>
+              <TableCell align='left'> {item.user_id}</TableCell>
+              <TableCell align='left'> {item.fullname}</TableCell>
+              <TableCell align='left'>{item.category === 'electric' ? 'Electric Bill' : 'Water Bill'}</TableCell>
+              <TableCell align='left'> {moment(item.created_at).format('YYYY-MM-DD')}</TableCell>
+              <TableCell align='left'>{item.payment_status === 'success' ? '✅' : 'Pending'}</TableCell>
+            </TableRow>
+          </Fragment>
+        )
+      })
+    }
     return electricBill
   }
 
   const formGeneralResult = () => {
     const formGeneral = []
-    searchResults.formGenerals.original.map(item => {
-      formGeneral.push(
-        <Fragment key={item.id}>
-          <TableRow hover role='checkbox' tabIndex={-1} onClick={() => router.push('/general-fixing')}>
-            <TableCell align='left'> {item.user_id}</TableCell>
-            <TableCell align='left'> {item.fullname}</TableCell>
-            <TableCell align='left'>General Form</TableCell>
-            <TableCell align='left'>{item.category}</TableCell>
-            <TableCell align='left' onClick={() => handleViewDetail(item)}>
-              <Button size='small' variant='outlined' sx={{ marginBottom: 7 }}>
-                View Detail
-              </Button>
-            </TableCell>
-            {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
-            <TableCell align='left'> {moment(item.created_at).format('YYYY-MM-DD')}</TableCell>
-            <TableCell align='left'>{item.general_status === 'done' ? '✅' : 'Pending'}</TableCell>
-          </TableRow>
-        </Fragment>
-      )
-    })
+    if (searchResults.formGenerals.original === 'No data found.') {
+      formGeneral.push(<Fragment></Fragment>)
+    } else {
+      searchResults.formGenerals.original.map(item => {
+        formGeneral.push(
+          <Fragment key={item.id}>
+            <TableRow hover role='checkbox' tabIndex={-1} >
+              <TableCell align='left' onClick={() => router.push('/general-fixing')}> {item.user_id}</TableCell>
+              <TableCell align='left' onClick={() => router.push('/general-fixing')}> {item.fullname}</TableCell>
+              <TableCell align='left' onClick={() => router.push('/general-fixing')}>General Form</TableCell>
+              <TableCell align='left' onClick={() => router.push('/general-fixing')}>{item.category}</TableCell>
+              <TableCell align='left' onClick={() => handleViewDetail(item)}>
+                <Button size='small' variant='outlined' sx={{ marginBottom: 7 }}>
+                  View Detail
+                </Button>
+              </TableCell>
+              {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
+              <TableCell align='left' onClick={() => router.push('/general-fixing')}> {moment(item.created_at).format('YYYY-MM-DD')}</TableCell>
+              <TableCell align='left' onClick={() => router.push('/general-fixing')}>{item.general_status === 'done' ? '✅' : 'Pending'}</TableCell>
+            </TableRow>
+          </Fragment>
+        )
+      })
+    }
 
-    searchResults.formEnvironments.original.map(item => {
-      formGeneral.push(
-        <Fragment key={item.id}>
-          <TableRow hover role='checkbox' tabIndex={-1} onClick={() => router.push('/environment-fixing')}>
-            <TableCell align='left'> {item.user_id}</TableCell>
-            <TableCell align='left'> {item.fullname}</TableCell>
-            <TableCell align='left'>Environmental Form</TableCell>
-            <TableCell align='left'>{item.category}</TableCell>
-            <TableCell align='left' onClick={() => handleViewDetail(item)}>
-              <Button size='small' variant='outlined' sx={{ marginBottom: 7 }}>
-                View Detail
-              </Button>
-            </TableCell>
-            {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
-            <TableCell align='left'> {moment(item.created_at).format('YYYY-MM-DD')}</TableCell>
-            <TableCell align='left'>{item.environment_status === 'done' ? '✅' : 'Pending'}</TableCell>
-          </TableRow>
-        </Fragment>
-      )
-    })
-
+    if (searchResults.formEnvironments.original === 'No data found.') {
+      formGeneral.push(<Fragment></Fragment>)
+    } else {
+      searchResults.formEnvironments.original.map(item => {
+        formGeneral.push(
+          <Fragment key={item.id}>
+            <TableRow hover role='checkbox' tabIndex={-1} >
+              <TableCell align='left' onClick={() => router.push('/environment-fixing')}> {item.user_id}</TableCell>
+              <TableCell align='left' onClick={() => router.push('/environment-fixing')}> {item.fullname}</TableCell>
+              <TableCell align='left' onClick={() => router.push('/environment-fixing')}>Environmental Form</TableCell>
+              <TableCell align='left' onClick={() => router.push('/environment-fixing')}>{item.category}</TableCell>
+              <TableCell align='left' onClick={() => handleViewDetail(item)}>
+                <Button size='small' variant='outlined' sx={{ marginBottom: 7 }}>
+                  View Detail
+                </Button>
+              </TableCell>
+              {/* <TableCell align='left'> {format(new Date(info.created_at), 'MMM dd, yyyy')}</TableCell> */}
+              <TableCell align='left' onClick={() => router.push('/environment-fixing')}> {moment(item.created_at).format('YYYY-MM-DD')}</TableCell>
+              <TableCell align='left' onClick={() => router.push('/environment-fixing')}>{item.environment_status === 'done' ? '✅' : 'Pending'}</TableCell>
+            </TableRow>
+          </Fragment>
+        )
+      })
+    }
     return formGeneral
   }
 
@@ -222,7 +232,7 @@ const AlignItemsList = () => {
         {searchResults && formGeneralResult().length > 0 && (
           <Paper sx={{ width: '100%', overflow: 'hidden' }}>
             <Typography variant='h5' marginLeft={7} marginTop={3}>
-              Services Form
+              General Service Forms
             </Typography>
             <TableContainer sx={{ maxHeight: 500 }}>
               <Table stickyHeader aria-label='sticky table' sx={{ margin: 5 }}>
@@ -285,11 +295,6 @@ const AlignItemsList = () => {
             </Collapse>
           </Paper>
         )}
-        {searchResults && formGeneralResult().length === 0 && (
-          <Typography variant='h5' marginLeft={7} marginTop={3}>
-            No Data Found
-          </Typography>
-        )}
       </Grid>
       <Grid item>
         {searchResults && electricBillResult().length > 0 && (
@@ -313,20 +318,8 @@ const AlignItemsList = () => {
             </TableContainer>
           </Paper>
         )}
-        {searchResults && electricBillResult().length === 0 && (
-          <Typography variant='h5' marginLeft={7} marginTop={3}>
-            No Data Found
-          </Typography>
-        )}
       </Grid>
-      <Grid item>
-        {searchResults && postResult().length > 0 && postResult()}
-        {searchResults && electricBillResult().length === 0 && (
-          <Typography variant='h5' marginLeft={7} marginTop={3}>
-            No Data Found
-          </Typography>
-        )}
-      </Grid>
+      <Grid item>{searchResults && postResult().length > 0 && postResult()}</Grid>
     </Grid>
   )
 }

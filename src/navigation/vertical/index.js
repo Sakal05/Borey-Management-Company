@@ -19,12 +19,15 @@ const navigation = () => {
       path: '/'
     },
     {
+      sectionTitle: 'Users'
+    },
+    {
       title: 'List of Users',
       icon: AccountCogOutline,
       path: '/user-info'
     },
     {
-      sectionTitle: 'Service'
+      sectionTitle: 'Maintenance Service'
     },
     {
       title: 'General Fixing',

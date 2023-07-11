@@ -19,9 +19,10 @@ import 'react-toastify/dist/ReactToastify.css'
 import { SettingsContext } from 'src/@core/context/settingsContext'
 import { useRouter } from 'next/router'
 import moment from 'moment'
+import Button from '@mui/material/Button'
 
 const TableStickyHeader = () => {
-  const router = useRouter();
+  const router = useRouter()
   const {
     contextTokenValue: { token }
   } = useContext(SettingsContext)
@@ -41,9 +42,28 @@ const TableStickyHeader = () => {
     setPage(0)
   }
 
+  const handleDeleteUser = async id => {
+    const url = `http://127.0.0.1:8000/api/user/${id}`
+    //`http://localhost:8000/api/user_infos`
+    try {
+      const res = await axios({
+        method: 'DELETE',
+        url: url,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      console.log(res)
+      toast.success("Delete successfully");
+      router.push('/user-info/');
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
   const fetchUserByCompany = async () => {
     console.log(token)
-    const url = 'http://127.0.0.1:8000/api/user_infos';
+    const url = 'http://127.0.0.1:8000/api/user_infos'
     //`http://localhost:8000/api/user_infos`
     try {
       const res = await axios({
@@ -99,6 +119,7 @@ const TableStickyHeader = () => {
                   <TableCell sx={{ minWidth: 170 }}>Email</TableCell>
                   <TableCell sx={{ minWidth: 170 }}>Property Id</TableCell>
                   <TableCell sx={{ minWidth: 170 }}>Register at</TableCell>
+                  <TableCell sx={{ minWidth: 170 }}>Action</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -115,10 +136,22 @@ const TableStickyHeader = () => {
                         {info.user.email}
                       </TableCell>
                       <TableCell key={info.id} align='left'>
-                        {info.house_type === '1' ? 'Teas cher' : info.house_type === '2' ? 'Teas Villa' : info.house_type === '3' ? 'Teas anh kom jes' : 'Teas ah na min dg'}
+                        {info.house_type === '1'
+                          ? 'Teas cher'
+                          : info.house_type === '2'
+                          ? 'Teas Villa'
+                          : info.house_type === '3'
+                          ? 'Teas anh kom jes'
+                          : 'Teas ah na min dg'}
                       </TableCell>
                       <TableCell key={info.id} align='left'>
                         {moment(info.created_at).format('YYYY-MM-DD')}
+                      </TableCell>
+                      <TableCell key={info.id} align='left'>
+                        {console.log(info.id)}
+                        <Button size='small' variant='outlined' sx={{ marginBottom: 7 }} onClick={() => handleDeleteUser(info.user.id)}>
+                          Delete
+                        </Button>
                       </TableCell>
                     </TableRow>
                   )

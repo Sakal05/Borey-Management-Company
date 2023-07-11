@@ -22,6 +22,7 @@ import IconButton from '@mui/material/IconButton'
 import ImageList from '@mui/material/ImageList'
 import ImageListItem from '@mui/material/ImageListItem'
 import { styled } from '@mui/material/styles'
+import RemoveCircleOutline from '@mui/icons-material/RemoveCircleOutline'
 
 const ButtonStyled = styled(Button)(({ theme }) => ({
   [theme.breakpoints.down('sm')]: {
@@ -34,7 +35,7 @@ const createPost = () => {
   const JWT = process.env.JWT
   const [uploadingImage, setUploadingImage] = useState('')
   // const [collapse, setCollapse] = useState(false)
-  const [uploadedImages, setUploadedImages] = useState([]);
+  const [uploadedImages, setUploadedImages] = useState([])
   const [imageCIDs, setImageCIDs] = useState([])
   const [contentType, setContentType] = useState('')
   // const [images, setImages] = useState([])
@@ -97,7 +98,7 @@ const createPost = () => {
         const imageURL = `https://gateway.ipfs.io/ipfs/${image_cid}`
         uploadedImageURLs.push(imageURL)
         setUploadedImages(uploadedImageURLs)
-        
+
         //display success message
         setImageCIDs(uploadedImageCIDs)
         toast.success('Upload image successfully')
@@ -152,6 +153,13 @@ const createPost = () => {
             'description' => 'required',
             'image' => 'required',
     */
+    if (imageCidsString.length === 0) {
+      toast.error('Missing Image')
+      return
+    } else if (heading === '' || description === '' || contentType === '') {
+      toast.error('Please fill in all required fields')
+      return
+    }
 
     const form = new FormData()
     form.append('image', imageCidsString)
@@ -170,7 +178,7 @@ const createPost = () => {
       })
       console.log(res)
       toast.success('Post uploaded successfully')
-      router.push('/');
+      router.push('/')
     } catch (err) {
       console.error(err)
     }
@@ -278,7 +286,7 @@ const createPost = () => {
                           onClick={() => handleRemoveImage(index)}
                           style={{ position: 'absolute', top: 5, right: 5 }}
                         >
-                          Click here
+                          <RemoveCircleOutline sx={{ color: 'red'}}/>
                         </IconButton>
                       </ImageListItem>
                     ))}
