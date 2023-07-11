@@ -141,9 +141,8 @@ const RegisterPage = () => {
 
   const handleSubmit = async e => {
     e.preventDefault()
-    const url = e.target.action
     console.log(userInfo);
-    console.log(error)
+    
     if (confirmPassword !== userInfo.password && !errorCheck) {
       toast.error("Passwords do not match"); 
     } else {
@@ -156,6 +155,7 @@ const RegisterPage = () => {
           router.push('/pages/c/login');
         }
       } catch (err) {
+        console.error(err);
         toast.error("Register fail, invalid input")
       }
   
